@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Allmende – teilgut</title>
+  <meta name="description" content="Allmende – teilgut: Dinge, Fähigkeiten und Termine in der Hausgemeinschaft teilen. Kostenlos, ohne Werbung, ohne Tracking.">
+  <meta name="theme-color" content="#0b1022">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https://*.workers.dev; connect-src 'self' https://*.workers.dev; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'self'">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Allmende">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="sky" aria-hidden="true"></div>
+  <div id="app" aria-live="polite"><p class="loading">Allmende wird geladen …</p></div>
+  <div id="skyline" aria-hidden="true"></div>
+  <nav id="nav" aria-label="Hauptmenü" hidden></nav>
+  <div id="sheet-wrap" hidden><div id="sheet" role="dialog" aria-modal="true"></div></div>
+  <div id="toast" role="status" hidden></div>
+  <noscript><p class="loading">Bitte JavaScript aktivieren, damit Allmende funktioniert.</p></noscript>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
