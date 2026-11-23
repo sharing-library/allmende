@@ -32,6 +32,70 @@ const MOD = {
 const SHARE_TABS = ['things', 'skills', 'requests'];
 const MENU_MODS = ['away', 'defects', 'info', 'rides', 'polls', 'thanks'];
 
+// ---------- Bearbeitbare Texte ----------
+// Format: Leerzeile = neuer Absatz · **fett** · *kursiv* · Zeilen mit „- “ = Liste · „1. “ = nummerierte Schritte
+// {verwaltung} wird durch den Namen aus config.js ersetzt.
+const D = {
+  login_lead: 'Hier teilen Nachbar*innen Werkzeug, Fähigkeiten und Zeit – kostenlos, ohne Werbung, ohne Datensammeln.',
+  start_lead: 'Schön, dass du da bist. Was brauchst du heute?',
+  welcome_title: '👋 Schön, dass du da bist!',
+  welcome_text: 'Neu hier? In zwei Minuten erklärt: worum es geht und was mit deinen Daten passiert.',
+  was_title: 'Was ist das hier?',
+  was_intro: '**Allmende** nannte man früher das Land, das allen im Dorf gemeinsam gehörte: die Wiese, den Brunnen, den Wald. Niemand musste alles allein besitzen, weil man es teilte.\n\nDiese App ist eine kleine Allmende für unser Haus. Hier teilen wir Werkzeug, Fähigkeiten und Zeit, verschenken, was wir nicht mehr brauchen, und wissen, was im Haus los ist.\n\nEine Bohrmaschine wird im Schnitt nur wenige Minuten im Jahr benutzt. Nicht jeder Haushalt braucht eine eigene Leiter, einen Pömpel oder ein Dörrgerät – **es reicht, wenn einer im Haus es hat und teilt.**',
+  was_safety_title: '🔒 Sicherheit & Daten',
+  was_safety: '- **Komplett kostenlos.** Jetzt und für immer. Keine Abos, keine Premium-Version.\n- **Keine Werbung, kein Tracking, keine Cookies.** Es werden keine Daten gesammelt, ausgewertet, verkauft oder weitergegeben.\n- **Keine privaten Daten nötig.** Kein echter Name, keine E-Mail, keine Telefonnummer, keine Adresse. Nur ein Name, unter dem dich die anderen im Haus erkennen.\n- **Nur fürs Haus.** Hineinkommen kann nur, wer Link und Hauspasswort hat. Jedes Haus sieht nur seine eigenen Einträge.\n- **Passwörter sind verschlüsselt.** Niemand – auch die Verwaltung nicht – kann sie lesen.\n- **Du hast die Kontrolle.** Du kannst deine Einträge jederzeit ändern oder löschen, und deinen ganzen Zugang auch.',
+  was_tech: 'Technisch ehrlich: Gespeichert wird nur, was du selbst einträgst. Die Daten liegen in einem privaten Speicher bei GitHub und werden über Cloudflare übertragen – das ist reine Technik, über die nichts ausgewertet wird. Die App lädt keine Schriften, Skripte oder Bilder von fremden Servern. Die Verwaltung ({verwaltung}) kann technisch alle Einträge sehen, um bei Problemen helfen zu können, aber keine Passwörter.',
+  was_who_title: '👋 Wer steckt dahinter?',
+  was_who: 'Allmende ist ein kleines Soloprojekt von {verwaltung} – ohne kommerzielle Absicht, ohne Firma dahinter. Einfach, weil gute Nachbarschaft einfacher sein darf.\n\nTipps, Fragen, Ideen oder ein Fehler? Schreib gern eine kurze Beschreibung und – wenn möglich – einen Screenshot.',
+  wie_title: 'Wie funktioniert das?',
+  wie_steps: '1. **Anmelden:** Beim ersten Mal mit dem Hauspasswort einen eigenen Zugang anlegen (Name + Passwort). Danach reicht dein Name und Passwort.\n2. **Stöbern:** Unten in der Leiste findest du alle Bereiche. Auf der Startseite kannst du auch nach allem suchen.\n3. **Eintragen:** In jedem Bereich gibt es unten rechts einen gelben Knopf „＋“. Damit trägst du etwas ein – zum Beispiel deine Leiter.\n4. **Kontakt aufnehmen:** Tippe bei einem Eintrag auf „Kontakt“. Dort steht, wie man die Person erreicht – z. B. „3. OG, einfach klingeln“. Den Rest klärt ihr direkt.\n5. **Verleihen:** Wenn du etwas verliehen hast, tippe auf „Verliehen“ und trag ein, bis wann. Dann sehen die anderen, dass es gerade weg ist, und du bekommst eine Erinnerung.\n6. **Ändern & Löschen:** Deine eigenen Einträge kannst du jederzeit mit „Bearbeiten“ oder „Löschen“ anpassen.\n7. **Als App aufs Handy:** iPhone: Teilen-Symbol → „Zum Home-Bildschirm“. Android: Browser-Menü (⋮) → „App installieren“.\n8. **Passwort vergessen?** Es gibt keine E-Mail. Sag {verwaltung} Bescheid – dein Passwort wird dann zurückgesetzt.',
+  wie_areas_title: 'Die Bereiche',
+  feedback_title: 'Fehler melden & Feedback',
+  feedback_lead: 'Danke, dass du hilfst, die App besser zu machen! Deine Nachricht geht direkt an {verwaltung}.',
+  empty_list: 'Hier ist noch nichts.\nMach den Anfang!',
+  intro_things: 'Dinge, die Nachbar*innen verleihen. Tippe auf „Kontakt“, um zu fragen.',
+  intro_skills: 'Wobei Nachbar*innen gern helfen.',
+  intro_requests: 'Hier bitten Nachbar*innen um Hilfe oder suchen etwas. Kannst du helfen?',
+  intro_gifts: 'Alles hier ist geschenkt. Einfach melden und abholen.',
+  intro_events: 'Termine im und ums Haus: Infos, Feiern, Einladungen.',
+  intro_away: 'Wer ist verreist und braucht Hilfe? Wer ist da und nimmt Pakete an?',
+  intro_defects: 'Was im Haus kaputt ist. Wenn es dich auch betrifft, tippe „Betrifft mich auch“ – so sieht man, wie viele es stört.',
+  intro_info: 'Wichtiges zum Haus an einem Ort.',
+  intro_rides: 'Wer fährt wohin? Vielleicht kann jemand etwas mitbringen oder mitnehmen.',
+  intro_polls: 'Gemeinsam entscheiden. Tippe auf eine Antwort, um abzustimmen.',
+  intro_thanks: 'Kleine Dankeschöns an die Nachbarschaft.',
+};
+for (const m of Object.keys(MOD)) { D[`mod_${m}_name`] = MOD[m].name; D[`mod_${m}_desc`] = MOD[m].desc; D[`mod_${m}_add`] = MOD[m].add; }
+
+let TEXTS = {};
+try { TEXTS = JSON.parse(localStorage.getItem('allmende:texts') || '{}'); } catch {}
+let TEXT_LAYERS = { global: {}, house: {} };
+const raw = (k) => (TEXTS[k] ?? D[k] ?? '');
+const inlineMd = (src) => esc(src).replace(/\{verwaltung\}/g, esc(MAINTAINER)).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>');
+function blockMd(src, listCls) {
+  return String(src).split(/\n\s*\n/).map((blk) => {
+    const lines = blk.split('\n').filter((l) => l.trim());
+    if (lines.length && lines.every((l) => /^\s*[-•]\s+/.test(l))) return `<ul class="${listCls || ''}">${lines.map((l) => `<li>${inlineMd(l.replace(/^\s*[-•]\s+/, ''))}</li>`).join('')}</ul>`;
+    if (lines.length && lines.every((l) => /^\s*\d+[.)]\s+/.test(l))) return `<ol class="steps">${lines.map((l) => `<li>${inlineMd(l.replace(/^\s*\d+[.)]\s+/, ''))}</li>`).join('')}</ol>`;
+    return lines.length ? `<p>${lines.map(inlineMd).join('<br>')}</p>` : '';
+  }).join('');
+}
+// tx: bearbeitbarer Text als HTML · txt: nur Text (für Knöpfe, Hinweise)
+function tx(k, o = {}) {
+  if (o.block) return `<div data-text="${k}"${o.cls ? ` class="${o.cls}"` : ''}>${blockMd(raw(k), o.list)}</div>`;
+  return `<span data-text="${k}">${inlineMd(raw(k)).replace(/\n/g, '<br>')}</span>`;
+}
+const txt = (k) => raw(k).replace(/\{verwaltung\}/g, MAINTAINER).replace(/\*\*?/g, '');
+async function loadTexts() {
+  try {
+    const slug = session.slug || new URLSearchParams(location.search).get('haus') || '';
+    TEXT_LAYERS = await call('GET', '/texts', null, slug ? { slug } : {});
+    TEXTS = { ...TEXT_LAYERS.global, ...TEXT_LAYERS.house };
+    localStorage.setItem('allmende:texts', JSON.stringify(TEXTS));
+  } catch {}
+}
+const canEditTexts = () => session.isSuper || !!me()?.admin;
+
 const CATEGORIES = ['Werkzeug', 'Haushalt', 'Küche', 'Garten & Balkon', 'Freizeit & Sport', 'Kinder', 'Sonstiges'];
 const EVENT_KINDS = { info: 'ℹ️ Info fürs Haus', laut: '🎉 Feier – kann lauter werden', einladung: '☕ Einladung – kommt vorbei', sonst: '📌 Sonstiges' };
 const DEFECT_STATUS = { offen: 'Offen', gemeldet: 'Bei Hausverwaltung gemeldet', behoben: 'Behoben' };
@@ -203,6 +267,7 @@ function header(title, lead) {
     </div>
     ${DEMO ? `<div class="demo-banner"><b>Demo-Modus</b> – alles bleibt nur auf diesem Gerät. <button class="secondary" data-act="reset-demo">Demo zurücksetzen</button></div>` : ''}
     ${me()?.super ? `<div class="demo-banner">Du bist als <b>Gesamtverwaltung</b> angemeldet. <button class="secondary" data-act="goto" data-h="verwaltung">Zur Verwaltung</button></div>` : ''}
+    ${canEditTexts() ? `<div class="edit-bar"><button class="small ${S.editMode ? '' : 'secondary'}" data-act="edit-mode">${S.editMode ? '✓ Fertig mit Bearbeiten' : '✏️ Texte bearbeiten'}</button>${S.editMode ? `<span>Tippe auf einen umrandeten Text. Gilt ${session.isSuper ? 'für <b>alle Häuser</b>' : 'nur für <b>dieses Haus</b>'}.</span>` : ''}</div>` : ''}
     ${title ? `<h1>${title}</h1>` : ''}${lead ? `<p class="lead">${lead}</p>` : ''}`;
 }
 
@@ -269,7 +334,7 @@ async function renderLogin() {
   app.innerHTML = `
     ${header('', '')}
     <h1>Willkommen${house ? ` in der Allmende<br><span style="color:var(--light)">${esc(house.name)}</span>` : ' bei der Allmende'}</h1>
-    <p class="lead">Hier teilen Nachbar*innen Werkzeug, Fähigkeiten und Zeit – kostenlos, ohne Werbung, ohne Datensammeln.</p>
+    <p class="lead">${tx('login_lead')}</p>
     ${DEMO ? `<div class="card notice"><h3>Einfach ausprobieren</h3><p class="text">Im Demo-Modus kannst du dich als „Eric“ anmelden und alles anklicken.</p><div class="actions"><button data-act="demo-login">Demo starten</button></div><p class="hint">Oder neu registrieren mit dem Hauspasswort <b>demo123</b>.</p></div>` : ''}
     <div class="card">
       ${!house ? `
@@ -336,7 +401,7 @@ function renderStart() {
   const mine = me();
   const notices = [];
   if (!session.pref('welcomed')) {
-    notices.push(`<div class="card notice"><h3>👋 Schön, dass du da bist!</h3><p class="text">Neu hier? In zwei Minuten erklärt: worum es geht und was mit deinen Daten passiert.</p>
+    notices.push(`<div class="card notice"><h3>${tx('welcome_title')}</h3><p class="text">${tx('welcome_text')}</p>
       <div class="actions"><a class="btn" href="#was">Was ist das hier?</a><button class="secondary" data-act="dismiss-welcome">Schon klar</button></div></div>`);
   }
   for (const t of d.things || []) {
@@ -363,7 +428,7 @@ function renderStart() {
   const fresh = S.prevSeen ? allItems().filter(({ it }) => it.by !== mine.id && new Date(it.at).getTime() > S.prevSeen).sort((a, b) => b.it.at.localeCompare(a.it.at)).slice(0, 6) : [];
 
   app.innerHTML = `
-    ${header(`Hallo ${esc(mine.name)}!`, 'Schön, dass du da bist. Was brauchst du heute?')}
+    ${header(`Hallo ${esc(mine.name)}!`, tx('start_lead'))}
     <form class="search" data-form="search" role="search"><input type="search" name="q" placeholder="🔎 Suchen, z. B. „Bohrer“ oder „Leiter“" aria-label="Suchen" autocomplete="off"></form>
     <div id="search-results"></div>
     <div id="start-body">
@@ -372,7 +437,7 @@ function renderStart() {
       ${fresh.length ? `<h2 class="section-title">✨ Neu seit deinem letzten Besuch</h2>${fresh.map(({ m, it }) => miniCard(m, it)).join('')}` : ''}
       ${upcoming.length ? `<h2 class="section-title">📅 Demnächst</h2>${upcoming.map((e) => card('events', e)).join('')}` : ''}
       <h2 class="section-title">Alles im Überblick</h2>
-      <div class="tiles">${mods().map((m) => `<a class="tile" href="#${hrefFor(m)}"><span class="ic">${MOD[m].ic}</span><b>${MOD[m].name}</b><span>${MOD[m].desc}</span></a>`).join('')}</div>
+      <div class="tiles">${mods().map((m) => `<a class="tile" href="#${hrefFor(m)}"><span class="ic">${MOD[m].ic}</span><b>${tx(`mod_${m}_name`)}</b><span>${tx(`mod_${m}_desc`)}</span></a>`).join('')}</div>
     </div>`;
 }
 
@@ -427,25 +492,13 @@ function renderList(col, withTabs) {
   const items = sortItems(col, all);
   const past = (col === 'events' || col === 'rides' || col === 'away') ? all.length - items.length : 0;
   const tabs = withTabs ? `<div class="seg">${SHARE_TABS.filter(has).map((m) => `<a href="#teilen/${m}" ${m === col ? 'aria-current="page"' : ''}>${MOD[m].ic} ${MOD[m].short}</a>`).join('')}</div>` : '';
-  const intro = {
-    things: 'Dinge, die Nachbar*innen verleihen. Tippe auf „Kontakt“, um zu fragen.',
-    skills: 'Wobei Nachbar*innen gern helfen.',
-    requests: 'Hier bitten Nachbar*innen um Hilfe oder suchen etwas. Kannst du helfen?',
-    gifts: 'Alles hier ist geschenkt. Einfach melden und abholen.',
-    events: 'Termine im und ums Haus: Infos, Feiern, Einladungen.',
-    away: 'Wer ist verreist und braucht Hilfe? Wer ist da und nimmt Pakete an?',
-    defects: 'Was im Haus kaputt ist. Wenn es dich auch betrifft, tippe „Betrifft mich auch“ – so sieht man, wie viele es stört.',
-    info: 'Wichtiges zum Haus an einem Ort.',
-    rides: 'Wer fährt wohin? Vielleicht kann jemand etwas mitbringen oder mitnehmen.',
-    polls: 'Gemeinsam entscheiden. Tippe auf eine Antwort, um abzustimmen.',
-    thanks: 'Kleine Dankeschöns an die Nachbarschaft.',
-  }[col];
+  const intro = tx(`intro_${col}`);
   app.innerHTML = `
-    ${header(withTabs ? 'Teilen' : `${MOD[col].ic} ${MOD[col].name}`, withTabs ? '' : intro)}
+    ${header(withTabs ? 'Teilen' : `${MOD[col].ic} ${tx(`mod_${col}_name`)}`, withTabs ? '' : intro)}
     ${tabs}${withTabs ? `<p class="lead">${intro}</p>` : ''}
-    ${items.length ? items.map((it) => card(col, it)).join('') : `<div class="empty">Hier ist noch nichts.<br>Mach den Anfang!</div>`}
+    ${items.length ? items.map((it) => card(col, it)).join('') : `<div class="empty">${tx('empty_list')}</div>`}
     ${past ? `<p class="empty" style="padding:8px">${past} vergangene Einträge werden ausgeblendet.</p>` : ''}
-    ${me().super ? '' : `<button class="fab" data-act="new" data-col="${col}">＋ ${MOD[col].add}</button>`}`;
+    ${me().super ? '' : `<button class="fab" data-act="new" data-col="${col}">＋ ${tx(`mod_${col}_add`)}</button>`}`;
 }
 
 function ownerActions(col, it) {
@@ -554,7 +607,7 @@ function renderMenu() {
   const extra = MENU_MODS.filter(has);
   app.innerHTML = `
     ${header('Mehr', '')}
-    ${extra.length ? `<div class="card list-menu">${extra.map((m) => `<a href="#m/${m}"><span class="ic">${MOD[m].ic}</span><span>${MOD[m].name}<br><small style="font-weight:400;color:var(--ink-soft)">${MOD[m].desc}</small></span></a>`).join('')}</div>` : ''}
+    ${extra.length ? `<div class="card list-menu">${extra.map((m) => `<a href="#m/${m}"><span class="ic">${MOD[m].ic}</span><span>${tx(`mod_${m}_name`)}<br><small style="font-weight:400;color:var(--ink-soft)">${tx(`mod_${m}_desc`)}</small></span></a>`).join('')}</div>` : ''}
     <div class="card list-menu">
       ${me().super ? '' : '<a href="#profil"><span class="ic">👤</span>Mein Profil</a>'}
       <a href="#was"><span class="ic">🏡</span>Was ist das hier?</a>
@@ -598,28 +651,12 @@ function renderProfile() {
 
 function renderWhat() {
   app.innerHTML = `
-    ${header('Was ist das hier?', '')}
-    <div class="card prose">
-      <p><b>Allmende</b> nannte man früher das Land, das allen im Dorf gemeinsam gehörte: die Wiese, den Brunnen, den Wald. Niemand musste alles allein besitzen, weil man es teilte.</p>
-      <p>Diese App ist eine kleine Allmende für unser Haus. Hier teilen wir Werkzeug, Fähigkeiten und Zeit, verschenken, was wir nicht mehr brauchen, und wissen, was im Haus los ist.</p>
-      <p>Eine Bohrmaschine wird im Schnitt nur wenige Minuten im Jahr benutzt. Nicht jeder Haushalt braucht eine eigene Leiter, einen Pömpel oder ein Dörrgerät – <b>es reicht, wenn einer im Haus es hat und teilt.</b></p>
-    </div>
-    <h2 class="section-title">🔒 Sicherheit & Daten</h2>
-    <div class="card prose">
-      <ul class="safe-list">
-        <li><b>Komplett kostenlos.</b> Jetzt und für immer. Keine Abos, keine Premium-Version.</li>
-        <li><b>Keine Werbung, kein Tracking, keine Cookies.</b> Es werden keine Daten gesammelt, ausgewertet, verkauft oder weitergegeben.</li>
-        <li><b>Keine privaten Daten nötig.</b> Kein echter Name, keine E-Mail, keine Telefonnummer, keine Adresse. Nur ein Name, unter dem dich die anderen im Haus erkennen.</li>
-        <li><b>Nur fürs Haus.</b> Hineinkommen kann nur, wer Link und Hauspasswort hat. Jedes Haus sieht nur seine eigenen Einträge.</li>
-        <li><b>Passwörter sind verschlüsselt.</b> Niemand – auch die Verwaltung nicht – kann sie lesen.</li>
-        <li><b>Du hast die Kontrolle.</b> Du kannst deine Einträge jederzeit ändern oder löschen, und deinen ganzen Zugang auch.</li>
-      </ul>
-      <p class="hint">Technisch ehrlich: Gespeichert wird nur, was du selbst einträgst. Die Daten liegen in einem privaten Speicher bei GitHub und werden über Cloudflare übertragen – das ist reine Technik, über die nichts ausgewertet wird. Die App lädt keine Schriften, Skripte oder Bilder von fremden Servern. Die Verwaltung (${esc(MAINTAINER)}) kann technisch alle Einträge sehen, um bei Problemen helfen zu können, aber keine Passwörter.</p>
-    </div>
-    <h2 class="section-title">👋 Wer steckt dahinter?</h2>
-    <div class="card prose">
-      <p>Allmende ist ein kleines Soloprojekt von ${esc(MAINTAINER)} – ohne kommerzielle Absicht, ohne Firma dahinter. Einfach, weil gute Nachbarschaft einfacher sein darf.</p>
-      <p>Tipps, Fragen, Ideen oder ein Fehler? Schreib gern eine kurze Beschreibung und – wenn möglich – einen Screenshot.</p>
+    ${header(tx('was_title'), '')}
+    <div class="card prose">${tx('was_intro', { block: 1 })}</div>
+    <h2 class="section-title">${tx('was_safety_title')}</h2>
+    <div class="card prose">${tx('was_safety', { block: 1, list: 'safe-list' })}${tx('was_tech', { block: 1, cls: 'hint' })}</div>
+    <h2 class="section-title">${tx('was_who_title')}</h2>
+    <div class="card prose">${tx('was_who', { block: 1 })}
       ${S.st ? '<div class="actions"><a class="btn" href="#feedback">✉️ Feedback senden</a></div>' : ''}
     </div>
     ${!S.st ? '<div class="small-links"><a class="link" href="#start">← Zur Anmeldung</a><a class="link" href="#wie">Wie funktioniert das?</a></div>' : ''}`;
@@ -628,25 +665,16 @@ function renderWhat() {
 function renderHow() {
   const list = (S.st ? mods() : ALL_MODULES.filter((m) => !['rides', 'polls', 'thanks'].includes(m)));
   app.innerHTML = `
-    ${header('Wie funktioniert das?', '')}
-    <div class="card prose"><ol class="steps">
-      <li><b>Anmelden:</b> Beim ersten Mal mit dem Hauspasswort einen eigenen Zugang anlegen (Name + Passwort). Danach reicht dein Name und Passwort.</li>
-      <li><b>Stöbern:</b> Unten in der Leiste findest du alle Bereiche. Auf der Startseite kannst du auch nach allem suchen.</li>
-      <li><b>Eintragen:</b> In jedem Bereich gibt es unten rechts einen gelben Knopf „＋“. Damit trägst du etwas ein – zum Beispiel deine Leiter.</li>
-      <li><b>Kontakt aufnehmen:</b> Tippe bei einem Eintrag auf „Kontakt“. Dort steht, wie man die Person erreicht – z. B. „3. OG, einfach klingeln“. Den Rest klärt ihr direkt.</li>
-      <li><b>Verleihen:</b> Wenn du etwas verliehen hast, tippe auf „Verliehen“ und trag ein, bis wann. Dann sehen die anderen, dass es gerade weg ist, und du bekommst eine Erinnerung.</li>
-      <li><b>Ändern & Löschen:</b> Deine eigenen Einträge kannst du jederzeit mit „Bearbeiten“ oder „Löschen“ anpassen.</li>
-      <li><b>Als App aufs Handy:</b> ${/iphone|ipad/i.test(navigator.userAgent) ? 'Teilen-Symbol → „Zum Home-Bildschirm“.' : 'Im Browser-Menü „App installieren“ oder „Zum Startbildschirm hinzufügen“.'}</li>
-      <li><b>Passwort vergessen?</b> Es gibt keine E-Mail. Sag ${esc(MAINTAINER)} Bescheid – dein Passwort wird dann zurückgesetzt.</li>
-    </ol></div>
-    <h2 class="section-title">Die Bereiche</h2>
-    <div class="card list-menu">${list.map((m) => `<div style="display:flex;gap:14px;padding:10px 4px;border-bottom:1px solid var(--line)"><span class="ic" style="font-size:1.4rem">${MOD[m].ic}</span><span><b>${MOD[m].name}</b><br><small style="color:var(--ink-soft)">${MOD[m].desc}</small></span></div>`).join('')}</div>
+    ${header(tx('wie_title'), '')}
+    <div class="card prose">${tx('wie_steps', { block: 1 })}</div>
+    <h2 class="section-title">${tx('wie_areas_title')}</h2>
+    <div class="card list-menu">${list.map((m) => `<div style="display:flex;gap:14px;padding:10px 4px;border-bottom:1px solid var(--line)"><span class="ic" style="font-size:1.4rem">${MOD[m].ic}</span><span><b>${tx(`mod_${m}_name`)}</b><br><small style="color:var(--ink-soft)">${tx(`mod_${m}_desc`)}</small></span></div>`).join('')}</div>
     ${!S.st ? '<div class="small-links"><a class="link" href="#start">← Zur Anmeldung</a><a class="link" href="#was">Was ist das hier?</a></div>' : ''}`;
 }
 
 function renderFeedback() {
   app.innerHTML = `
-    ${header('Fehler melden & Feedback', `Danke, dass du hilfst, die App besser zu machen! Deine Nachricht geht direkt an ${esc(MAINTAINER)}.`)}
+    ${header(tx('feedback_title'), tx('feedback_lead'))}
     <div class="card"><form data-form="feedback">
       <label for="fb-t">Was ist passiert oder was wünschst du dir?</label>
       <textarea id="fb-t" name="text" required minlength="3" placeholder="z. B. Wenn ich auf „Speichern“ tippe, passiert nichts."></textarea>
@@ -755,7 +783,7 @@ function openForm(col, item, preset = {}) {
       default: return lab + `<input id="${id}" name="${f.k}" type="text" value="${esc(val)}" ${f.req ? 'required' : ''} placeholder="${esc(f.ph || '')}" maxlength="${f.k === 'contact' ? 200 : 120}">` + hint;
     }
   }).join('');
-  openSheet(`${sheetHead(item ? 'Bearbeiten' : `${MOD[col].ic} ${MOD[col].add}`)}
+  openSheet(`${sheetHead(item ? 'Bearbeiten' : `${MOD[col].ic} ${esc(txt(`mod_${col}_add`))}`)}
     <form data-form="item" data-col="${col}" data-id="${item ? item.id : ''}">${fields}
       <div class="err" hidden></div>
       <div class="sheet-actions"><button type="button" class="secondary" data-act="close">Abbrechen</button><button>Speichern</button></div>
@@ -782,8 +810,28 @@ async function compressImage(file, maxSide = 1280, maxLen = 600000) {
 }
 
 // ---------- Aktionen (Klicks) ----------
+function openTextEditor(k) {
+  const isSuper = session.isSuper;
+  const layer = isSuper ? TEXT_LAYERS.global : TEXT_LAYERS.house;
+  const changed = k in (layer || {});
+  const multi = /\n/.test(D[k] || '') || (D[k] || '').length > 90;
+  openSheet(`${sheetHead('✏️ Text bearbeiten')}
+    <form data-form="text" data-key="${k}">
+      <p class="hint">Gilt ${isSuper ? 'für <b>alle Häuser</b> (Gesamtverwaltung)' : 'nur für <b>dieses Haus</b>'}.${changed ? ' Dieser Text wurde schon angepasst.' : ''}</p>
+      ${multi ? `<textarea name="value" style="min-height:260px">${esc(raw(k))}</textarea>` : `<input type="text" name="value" value="${esc(raw(k))}">`}
+      <p class="hint">Leerzeile = neuer Absatz · <b>**fett**</b> · <i>*kursiv*</i> · Zeilen mit „- “ = Liste · „1. “ = Schritte · <code>{verwaltung}</code> = ${esc(MAINTAINER)}</p>
+      <div class="err" hidden></div>
+      <div class="sheet-actions">
+        ${changed ? `<button type="button" class="ghost" data-act="text-reset" data-key="${k}">Original wiederherstellen</button>` : ''}
+        <button type="button" class="secondary" data-act="close">Abbrechen</button><button>Speichern</button>
+      </div>
+    </form>`);
+}
+
 const actions = {
   close: () => closeSheet(),
+  'edit-mode': () => { S.editMode = !S.editMode; document.body.classList.toggle('edit-mode', S.editMode); render(); },
+  'text-reset': async (d) => { try { await call('PUT', '/admin/texts', { key: d.key, value: null }); await loadTexts(); closeSheet(); toast('Original wiederhergestellt'); render(); } catch (e) { handleErr(e); } },
   goto: (d) => go(d.h),
   'login-mode': (d) => { S.loginMode = d.mode; renderLogin(); },
   'other-house': () => { session.slug = ''; S.loginHouse = null; S.forceNoHouse = true; history.replaceState(null, '', location.pathname + (location.search.includes('demo') ? '?demo' : '') + '#start'); renderLogin(); },
@@ -834,7 +882,7 @@ const actions = {
     <div class="sheet-actions"><button class="secondary" data-act="close">Abbrechen</button><button class="danger" data-act="delete-me-yes">Endgültig löschen</button></div>`),
   'delete-me-yes': async () => { try { await call('DELETE', '/me'); closeSheet(); session.clear(); S.st = null; toast('Dein Zugang wurde gelöscht.'); go('start'); } catch (e) { handleErr(e); } },
   copy: async (d) => { try { await navigator.clipboard.writeText(d.text); toast('Kopiert!'); } catch { toast('Kopieren nicht möglich – bitte markieren und kopieren.'); } },
-  'pick-house': async (d) => { session.slug = d.slug; S.st = null; if (d.slug) { try { await loadState(); } catch (e) { return handleErr(e); } } renderNav(); renderAdmin(); },
+  'pick-house': async (d) => { session.slug = d.slug; S.st = null; await loadTexts(); if (d.slug) { try { await loadState(); } catch (e) { return handleErr(e); } } renderNav(); renderAdmin(); },
   'reset-pw': (d) => openSheet(`${sheetHead('Passwort zurücksetzen')}<form data-form="reset-pw" data-id="${d.id}">
     <p class="text">Neues Passwort für <b>${esc(d.name)}</b>. Gib es der Person danach persönlich.</p>
     <label for="r-p">Neues Passwort</label><input id="r-p" name="password" type="text" required minlength="6" autocomplete="off" value="${Math.random().toString(36).slice(2, 8)}">
@@ -845,6 +893,14 @@ const actions = {
   'remove-user-yes': async (d) => { try { await call('DELETE', `/admin/users/${d.id}`); closeSheet(); toast('Entfernt'); await loadState(); renderAdmin(); } catch (e) { handleErr(e); } },
   'del-feedback': async (d) => { try { await call('DELETE', `/admin/feedback/${d.id}`); renderAdmin(); } catch (e) { handleErr(e); } },
 };
+
+document.addEventListener('click', (e) => {
+  if (!S.editMode) return;
+  const t = e.target.closest('[data-text]');
+  if (!t || t.closest('#sheet')) return;
+  e.preventDefault(); e.stopPropagation();
+  openTextEditor(t.dataset.text);
+}, true);
 
 document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-act]');
@@ -858,6 +914,7 @@ document.addEventListener('click', (e) => {
 async function afterLogin(token, slug, isSuper = false) {
   session.token = token; session.slug = slug; session.isSuper = isSuper;
   if (location.search.includes('haus=')) history.replaceState(null, '', location.pathname + (DEMO && location.search.includes('demo') ? '?demo' : ''));
+  await loadTexts();
   if (isSuper) { S.st = null; go('verwaltung'); return; }
   await loadState();
   S.prevSeen = Number(session.pref('seen:' + slug)) || 0;
@@ -865,6 +922,10 @@ async function afterLogin(token, slug, isSuper = false) {
 }
 
 const forms = {
+  text: async (fd, form) => {
+    await call('PUT', '/admin/texts', { key: form.dataset.key, value: String(fd.get('value') || '') });
+    await loadTexts(); closeSheet(); toast('Text gespeichert'); render();
+  },
   house: async (fd) => { S.loginHouse = null; S.forceNoHouse = false; const slug = fd.get('slug').trim().toLowerCase(); history.replaceState(null, '', location.pathname + '?haus=' + encodeURIComponent(slug) + (DEMO ? '&demo' : '')); await renderLogin(); },
   join: async (fd) => {
     if (fd.get('password') !== fd.get('password2')) throw new Error('Die beiden Passwörter sind nicht gleich.');
@@ -954,6 +1015,7 @@ if (session.pref('big')) document.documentElement.classList.add('big');
 drawSky();
 
 (async function init() {
+  await loadTexts();
   const qs = new URLSearchParams(location.search);
   if (qs.get('haus') && qs.get('haus') !== session.slug && !session.isSuper) { session.token = ''; }
   if (session.token) {

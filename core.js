@@ -437,6 +437,30 @@ export function createCore(store, config) {
       return { ok: true };
     },
 
+    // ---------- Texte (Was ist das hier? usw.) ----------
+    // Öffentlich lesbar, damit sie schon vor der Anmeldung angezeigt werden.
+    'GET /texts': async ({ query }) => {
+      const global = (await readData('texts.json', () => ({ texts: {} }))).texts;
+      let house = {};
+      if (/^[a-z0-9-]{1,60}$/.test(query.slug || '') && (await store.read(P.house(query.slug)))) {
+        house = (await readData(`houses/${query.slug}/texts.json`, () => ({ texts: {} }))).texts;
+      }
+      return { global, house };
+    },
+    // Gesamtverwaltung ändert Texte für alle Häuser, Haus-Verwaltung nur für ihr Haus
+    'PUT /admin/texts': async ({ token, query, body }) => {
+      const a = await auth(token, query, { needAdmin: true });
+      const key = String(body.key || '');
+      if (!/^[a-z0-9_]{1,40}$/.test(key)) fail(400, 'Ungültiger Text-Schlüssel.');
+      const value = body.value === null || body.value === undefined ? null : String(body.value).replace(/\r/g, '').slice(0, 5000);
+      const path = a.isSuper ? 'texts.json' : `houses/${needSlug(a)}/texts.json`;
+      await update(path, () => ({ texts: {} }), (d) => {
+        if (value === null) delete d.texts[key];
+        else { if (Object.keys(d.texts).length >= 400 && !(key in d.texts)) fail(400, 'Zu viele Texte.'); d.texts[key] = value; }
+      });
+      return { ok: true, scope: a.isSuper ? 'global' : 'house' };
+    },
+
     // ---------- Verwaltung ----------
     'GET /admin/feedback': async ({ token, query }) => {
       const a = await auth(token, query, { needAdmin: true });

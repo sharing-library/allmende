@@ -81,4 +81,11 @@ assert.equal(r.body.data.defects.length, 0); assert.equal(Object.keys(r.body.dat
 for (let i = 0; i < 8; i++) await call('POST', '/login', { body: { slug, name: 'Eric', password: 'x' } });
 r = await call('POST', '/login', { body: { slug, name: 'Eric', password: 'geheim1' } }); assert.equal(r.status, 429);
 
+// Texte
+r = await call('PUT', '/admin/texts', { token: sup, body: { key: 'was_intro', value: 'Global' } }); assert.equal(r.body.scope, 'global');
+r = await call('PUT', '/admin/texts', { token: eric, body: { key: 'was_intro', value: 'Nur Haus' } }); assert.equal(r.body.scope, 'house');
+r = await call('GET', '/texts', { query: { slug } }); assert.equal(r.body.global.was_intro, 'Global'); assert.equal(r.body.house.was_intro, 'Nur Haus');
+r = await call('PUT', '/admin/texts', { token: eric, body: { key: 'was_intro', value: null } });
+r = await call('GET', '/texts', { query: { slug } }); assert.equal(r.body.house.was_intro, undefined);
+r = await call('PUT', '/admin/texts', { token: eric, body: { key: '../x', value: 'a' } }); assert.equal(r.status, 400);
 console.log('Alle Kern-Tests bestanden ✓');

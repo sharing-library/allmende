@@ -210,3 +210,10 @@ textarea { min-height: 110px; resize: vertical; }
 .small-links { text-align: center; margin-top: 20px; display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; }
 .small-links .link { font-size: .9rem; color: #e6e3fb; }
 .share-box { background: var(--paper-2); border-radius: 12px; padding: 12px; word-break: break-all; font-family: ui-monospace, Menlo, monospace; font-size: .85rem; }
+
+/* Texte bearbeiten */
+.edit-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: -6px 0 14px; color: #e6e3fb; font-size: .85rem; }
+body.edit-mode [data-text] { outline: 2px dashed var(--light); outline-offset: 3px; border-radius: 4px; cursor: text; }
+body.edit-mode .card [data-text] { outline-color: var(--light-deep); }
+body.edit-mode [data-text]:hover { background: rgba(255, 201, 77, .15); }
+code { background: var(--paper-2); padding: 1px 5px; border-radius: 5px; font-size: .85em; }
