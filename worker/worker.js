@@ -721,8 +721,11 @@ export default {
   async fetch(request, env) {
     const headers = cors(request);
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
-    if (!env.GITHUB_TOKEN || !env.SESSION_SECRET) {
-      return new Response(JSON.stringify({ error: 'Worker ist noch nicht eingerichtet (Secrets fehlen).' }), { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } });
+    const missing = ['GITHUB_TOKEN', 'ADMIN_KEY', 'SESSION_SECRET'].filter((k) => !env[k]);
+    if (env.SESSION_SECRET && env.SESSION_SECRET.length < 16) missing.push('SESSION_SECRET (zu kurz, mind. 16 Zeichen)');
+    if (missing.length) {
+      const found = Object.keys(env).filter((k) => !k.startsWith('__')).join(', ') || 'keine';
+      return new Response(JSON.stringify({ error: 'Worker ist noch nicht eingerichtet. Es fehlt: ' + missing.join(', ') + '. Gefundene Namen: ' + found + '.' }), { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } });
     }
     if (!core) core = createCore(githubStore(env), { adminKey: env.ADMIN_KEY, sessionSecret: env.SESSION_SECRET });
 
