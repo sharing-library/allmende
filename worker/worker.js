@@ -383,6 +383,12 @@ function createCore(store, config) {
         const u = d.users.find((x) => x.id === a.user.id);
         if (!u) fail(404, 'Zugang nicht gefunden.');
         if (body.contact !== undefined) u.contact = str(body.contact, 200);
+        if (body.name !== undefined) {
+          const name = str(body.name, 40);
+          if (name.length < 2) fail(400, 'Der Name braucht mindestens 2 Zeichen.');
+          if (d.users.some((x) => x.id !== u.id && x.name.toLowerCase() === name.toLowerCase())) fail(409, 'Diesen Namen gibt es in diesem Haus schon.');
+          u.name = name;
+        }
         if (newPass) { u.pass = newPass; u.tv = (u.tv || 0) + 1; }
         return u;
       });

@@ -36,6 +36,7 @@ const MENU_MODS = ['away', 'defects', 'info', 'rides', 'polls', 'thanks'];
 // Format: Leerzeile = neuer Absatz · **fett** · *kursiv* · Zeilen mit „- “ = Liste · „1. “ = nummerierte Schritte
 // {verwaltung} wird durch den Namen aus config.js ersetzt.
 const D = {
+  super_name: 'Gesamtverwaltung',
   login_lead: 'Hier teilen Nachbar*innen Werkzeug, Fähigkeiten und Zeit – kostenlos, ohne Werbung, ohne Datensammeln.',
   start_lead: 'Schön, dass du da bist. Was brauchst du heute?',
   welcome_title: '👋 Schön, dass du da bist!',
@@ -196,6 +197,139 @@ function toast(msg) {
 }
 
 // ---------- Himmel & Stadtsilhouette ----------
+// Detaillierte Stadtsilhouette – wird passend zur Bildschirmbreite gezeichnet
+function drawSkyline() {
+  const el = $('#skyline');
+  const W = Math.max(320, Math.round(el.clientWidth || innerWidth));
+  const H = Math.max(140, Math.round(el.clientHeight || 220));
+  drawSkyline.w = W;
+  let seed = 42;
+  const r = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const ri = (a, b) => a + Math.floor(r() * (b - a + 1));
+  const n = (v) => Math.round(v * 10) / 10;
+  let back = '', backWin = '', front = '', unlit = '', lit = '';
+
+  // Fenster als Raster, das garantiert komplett in die Fläche passt
+  function grid(bx, by, bw, bh, ww, wh, gx, gy, p = .3, opt = {}) {
+    const cols = Math.floor((bw + gx) / (ww + gx)), rows = Math.floor((bh + gy) / (wh + gy));
+    if (cols < 1 || rows < 1) return;
+    const ox = bx + (bw - (cols * (ww + gx) - gx)) / 2;
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+      const x = n(ox + i * (ww + gx)), y = n(by + j * (wh + gy));
+      const rx = opt.arch ? ` rx="${ww / 2}" ry="${Math.min(ww / 2, 3)}"` : ' rx="1"';
+      if (r() < p) lit += `<rect class="win${r() < .08 ? ' f' : ''}" x="${x}" y="${y}" width="${ww}" height="${wh}"${rx} style="animation-delay:${(r() * 9).toFixed(1)}s"/>`;
+      else unlit += `<rect x="${x}" y="${y}" width="${ww}" height="${wh}"${rx}/>`;
+    }
+  }
+  const hgt = (a, b) => Math.round(H * (a + r() * (b - a)));
+
+  // Hintere Reihe: blasser, ruhiger
+  let x = -10;
+  while (x < W + 10) {
+    const w = ri(40, 120), h = hgt(.5, .92), top = H - h;
+    back += `<rect x="${x}" y="${top}" width="${w}" height="${h}"/>`;
+    const t = r();
+    if (t < .2) back += `<rect x="${x + n(w * .3)}" y="${top - 16}" width="2" height="16"/><rect x="${x + n(w * .3) - 3}" y="${top - 10}" width="8" height="2"/>`;
+    else if (t < .3) back += `<polygon points="${x},${top} ${x + w / 2},${top - w * .35} ${x + w},${top}"/>`;
+    else if (t < .34 && top > 60) back += `<rect x="${x + w * .6}" y="${top - 50}" width="3" height="50"/><rect x="${x + w * .1}" y="${top - 50}" width="${w * .9 + 30}" height="3"/><rect x="${x + w * .6 + 26}" y="${top - 47}" width="1" height="22"/>`; // Kran
+    for (let wy = top + 8; wy + 6 <= H - 6; wy += 12) for (let wx = x + 6; wx + 4 <= x + w - 6; wx += 10) if (r() < .07) backWin += `<rect x="${wx}" y="${wy}" width="4" height="6"/>`;
+    x += w + ri(0, 8);
+  }
+
+  // Vordere Reihe: verschiedene Haustypen
+  const types = ['altbau', 'altbau', 'altbau', 'gable', 'gable', 'platte', 'modern', 'stepped', 'altbau', 'factory'];
+  const churchAt = W > 560 ? W * (.55 + r() * .25) : -1;
+  let church = false, factories = 0;
+  x = -ri(0, 20);
+  while (x < W + 10) {
+    if (!church && churchAt > 0 && x > churchAt) {
+      church = true;
+      const tw = 30, th = hgt(.5, .58), sp = Math.min(H * .32, H - th - 6), top = H - th;
+      front += `<rect x="${x}" y="${top}" width="${tw}" height="${th}"/><polygon points="${x - 3},${top} ${x + tw / 2},${top - sp} ${x + tw + 3},${top}"/><rect x="${x + tw / 2 - .75}" y="${top - sp - 10}" width="1.5" height="10"/><rect x="${x + tw / 2 - 4}" y="${top - sp - 7}" width="8" height="1.5"/>`;
+      lit += `<circle cx="${x + tw / 2}" cy="${top + 14}" r="5"/>`;
+      grid(x + 8, top + 30, tw - 16, th - 46, 5, 14, 6, 14, .5, { arch: 1 });
+      const nw = ri(60, 80), nh = hgt(.3, .36), nt = H - nh;
+      front += `<rect x="${x + tw}" y="${nt}" width="${nw}" height="${nh}"/><polygon points="${x + tw},${nt} ${x + tw + nw / 2},${nt - nw * .38} ${x + tw + nw},${nt}"/>`;
+      grid(x + tw + 8, nt + 10, nw - 16, nh - 22, 6, 16, 10, 12, .6, { arch: 1 });
+      x += tw + nw + ri(2, 8);
+      continue;
+    }
+    let t = types[ri(0, types.length - 1)];
+    if (t === 'factory' && factories >= 1) t = 'altbau';
+    if (t === 'altbau') {
+      const w = ri(64, 110), h = hgt(.42, .72), top = H - h;
+      const roofH = Math.min(22, top - 4);
+      front += `<rect x="${x}" y="${top}" width="${w}" height="${h}"/><rect x="${x - 3}" y="${top - 5}" width="${w + 6}" height="5"/>`;
+      front += `<polygon points="${x},${top - 5} ${x + 9},${top - 5 - roofH} ${x + w - 9},${top - 5 - roofH} ${x + w},${top - 5}"/>`;
+      const dormers = Math.max(1, Math.floor(w / 40));
+      for (let d = 0; d < dormers; d++) {
+        const dx = x + (w / (dormers + 1)) * (d + 1) - 6;
+        front += `<rect x="${n(dx)}" y="${top - 5 - roofH * .75}" width="12" height="${n(roofH * .75)}"/><polygon points="${n(dx - 1)},${n(top - 5 - roofH * .75)} ${n(dx + 6)},${n(top - 5 - roofH - 3)} ${n(dx + 13)},${n(top - 5 - roofH * .75)}"/>`;
+        if (r() < .35) lit += `<rect class="win" x="${n(dx + 3)}" y="${n(top - 5 - roofH * .55)}" width="6" height="${n(roofH * .45)}" rx="1"/>`;
+      }
+      if (r() < .6) front += `<rect x="${x + w * .75}" y="${top - 5 - roofH - 10}" width="7" height="12"/>`;
+      grid(x + 8, top + 10, w - 16, h - 40, 8, 13, 9, 13, .3);
+      front += `<rect x="${x + w / 2 - 9}" y="${H - 4}" width="18" height="4"/>`;
+      unlit += `<rect x="${x + w / 2 - 6}" y="${H - 22}" width="12" height="20" rx="6" ry="6"/>`;
+      if (r() < .5) for (let by = top + 36; by < H - 40; by += 26) if (r() < .3) front += `<rect x="${x + w / 2 - 12}" y="${by}" width="24" height="3"/>`; // Balkone
+      x += w;
+    } else if (t === 'gable') {
+      const w = ri(46, 74), h = hgt(.3, .55), top = H - h, rh = Math.min(w * .5, top - 6);
+      front += `<rect x="${x}" y="${top}" width="${w}" height="${h}"/><polygon points="${x - 3},${top} ${x + w / 2},${top - rh} ${x + w + 3},${top}"/><rect x="${x + w * .7}" y="${top - rh * .8}" width="7" height="${n(rh * .5)}"/>`;
+      (r() < .4 ? (lit += `<circle cx="${x + w / 2}" cy="${n(top - rh * .38)}" r="4"/>`) : (unlit += `<circle cx="${x + w / 2}" cy="${n(top - rh * .38)}" r="4"/>`));
+      grid(x + 8, top + 10, w - 16, h - 34, 9, 11, 10, 13, .3);
+      unlit += `<rect x="${x + 8}" y="${H - 20}" width="11" height="18" rx="1"/>`;
+      x += w;
+    } else if (t === 'stepped') {
+      const w = ri(50, 66), h = hgt(.35, .55), top = H - h, st = Math.min(12, (top - 6) / 4), sw = w / 8;
+      let pts = `${x},${H} ${x},${top}`;
+      for (let i = 1; i <= 4; i++) pts += ` ${n(x + sw * (i - 1))},${n(top - st * i)} ${n(x + sw * i)},${n(top - st * i)}`;
+      for (let i = 4; i >= 1; i--) pts += ` ${n(x + w - sw * i)},${n(top - st * i)} ${n(x + w - sw * (i - 1))},${n(top - st * (i - 1))}`;
+      front += `<polygon points="${pts} ${x + w},${H}"/>`;
+      grid(x + 9, top + 8, w - 18, h - 30, 8, 12, 9, 12, .3, { arch: 1 });
+      x += w;
+    } else if (t === 'platte') {
+      const w = ri(120, 170), h = hgt(.5, .68), top = H - h;
+      front += `<rect x="${x}" y="${top}" width="${w}" height="${h}"/><rect x="${x + 10}" y="${top - 8}" width="22" height="8"/><rect x="${x + w - 30}" y="${top - 20}" width="2" height="20"/><rect x="${x + w - 36}" y="${top - 16}" width="14" height="2"/>`;
+      grid(x + 7, top + 8, w - 14, h - 22, 7, 8, 6, 8, .28);
+      x += w;
+    } else if (t === 'modern') {
+      const w = ri(46, 70), h = hgt(.62, .86), top = H - h, sl = Math.min(18, top - 4);
+      front += `<polygon points="${x},${H} ${x},${top} ${x + w},${top - sl} ${x + w},${H}"/>`;
+      grid(x + 6, top + 6, w - 12, h - 20, w - 12, 5, 0, 7, .22);
+      x += w;
+    } else if (t === 'factory') {
+      factories++;
+      const w = ri(120, 160), h = hgt(.26, .34), top = H - h, teeth = Math.floor(w / 24), tw = w / teeth;
+      let pts = `${x},${H} ${x},${top}`;
+      for (let i = 0; i < teeth; i++) pts += ` ${n(x + i * tw)},${n(top - 16)} ${n(x + (i + 1) * tw)},${top}`;
+      front += `<polygon points="${pts} ${x + w},${H}"/>`;
+      const ch = Math.min(H * .78, H - 6), cx = x + w - 22;
+      front += `<polygon points="${cx},${H - h} ${cx + 3},${H - ch} ${cx + 11},${H - ch} ${cx + 14},${H - h}"/><rect x="${cx + 1}" y="${H - ch + 14}" width="12" height="3"/><rect x="${cx + 1}" y="${H - ch + 30}" width="12" height="3"/>`;
+      grid(x + 8, top + 10, w - 40, h - 22, 16, 11, 7, 10, .55);
+      x += w;
+    }
+    // Lücke mit Baum oder Laterne
+    const gap = r();
+    if (gap < .22) {
+      const gw = ri(18, 30), cx = x + gw / 2, tr = ri(9, 14);
+      front += `<rect x="${cx - 1.5}" y="${H - 18}" width="3" height="18"/><circle cx="${cx}" cy="${H - 18 - tr * .6}" r="${tr}"/><circle cx="${cx - tr * .7}" cy="${H - 18 - tr * .2}" r="${tr * .7}"/><circle cx="${cx + tr * .7}" cy="${H - 18 - tr * .25}" r="${tr * .75}"/>`;
+      x += gw;
+    } else if (gap < .32) {
+      const gw = 14, cx = x + 7;
+      front += `<rect x="${cx - 1}" y="${H - 34}" width="2" height="34"/><rect x="${cx - 4}" y="${H - 36}" width="8" height="3" rx="1"/>`;
+      lit += `<circle cx="${cx}" cy="${H - 31}" r="2.2"/>`;
+      x += gw;
+    } else x += ri(0, 3);
+  }
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">
+    <g fill="#222a57">${back}</g><g fill="#c9a24a" opacity=".45">${backWin}</g>
+    <g fill="#0b1022">${front}<rect x="0" y="${H - 2}" width="${W}" height="2"/></g>
+    <g fill="#18204a">${unlit}</g><g class="lit" fill="#ffc94d">${lit}</g></svg>`;
+}
+let skyResize;
+window.addEventListener('resize', () => { clearTimeout(skyResize); skyResize = setTimeout(() => { if (Math.abs(($('#skyline').clientWidth || 0) - (drawSkyline.w || 0)) > 40) drawSkyline(); }, 200); });
+
 function drawSky() {
   const sky = $('#sky');
   let rnd = 7;
@@ -204,30 +338,7 @@ function drawSky() {
   for (let i = 0; i < 46; i++) html += `<i class="star" style="left:${(r() * 100).toFixed(1)}%;top:${(r() * 55).toFixed(1)}%;animation-delay:${(r() * 4).toFixed(1)}s;${r() > .8 ? 'width:3px;height:3px;' : ''}"></i>`;
   sky.innerHTML = html;
 
-  // Silhouette: zufällig, aber immer gleich (fester Startwert)
-  rnd = 42;
-  const W = 1200, H = 120;
-  let x = 0, shapes = '', wins = '';
-  while (x < W) {
-    const w = 34 + Math.floor(r() * 70);
-    const h = 36 + Math.floor(r() * 70);
-    const top = H - h;
-    const type = r();
-    if (type < .18) shapes += `<polygon points="${x},${top} ${x + w / 2},${top - 18} ${x + w},${top} ${x + w},${H} ${x},${H}"/>`; // Giebel
-    else if (type < .26) shapes += `<rect x="${x}" y="${top}" width="${w}" height="${h}"/><rect x="${x + w / 2 - 2}" y="${top - 22}" width="4" height="22"/>`; // Antenne
-    else if (type < .31 && h > 70) shapes += `<rect x="${x}" y="${top}" width="${w}" height="${h}"/><polygon points="${x + w / 2 - 9},${top} ${x + w / 2},${top - 42} ${x + w / 2 + 9},${top}"/>`; // Turmspitze
-    else if (type < .40) shapes += `<rect x="${x}" y="${top}" width="${w}" height="${h}"/><rect x="${x + 6}" y="${top - 10}" width="10" height="10"/>`; // Schornstein
-    else shapes += `<rect x="${x}" y="${top}" width="${w}" height="${h}"/>`;
-    for (let wy = top + 10; wy < H - 12; wy += 16) {
-      for (let wx = x + 7; wx < x + w - 10; wx += 14) {
-        if (r() < .2) wins += `<rect class="win${r() < .12 ? ' f' : ''}" x="${wx}" y="${wy}" width="6" height="8" rx="1" style="animation-delay:${(r() * 9).toFixed(1)}s"/>`;
-      }
-    }
-    x += w + (r() < .3 ? 4 : 0);
-  }
-  // Bäume dazwischen
-  for (let i = 0; i < 7; i++) { const tx = 60 + r() * (W - 120); shapes += `<circle cx="${tx}" cy="${H - 14}" r="${12 + r() * 8}"/><rect x="${tx - 2}" y="${H - 14}" width="4" height="14"/>`; }
-  $('#skyline').innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice"><g fill="#0b1022">${shapes}</g>${wins}</svg>`;
+  drawSkyline();
 }
 
 // ---------- Navigation ----------
@@ -262,11 +373,11 @@ function renderNav() {
 function header(title, lead) {
   return `
     <div class="top">
-      <div class="brand"><b>Allmende</b><small>teilgut</small></div>
+      <div class="brand"><b>allmende</b><small>teilgut</small></div>
       <div class="house-name">${esc(S.st?.house.name || '')}</div>
     </div>
     ${DEMO ? `<div class="demo-banner"><b>Demo-Modus</b> – alles bleibt nur auf diesem Gerät. <button class="secondary" data-act="reset-demo">Demo zurücksetzen</button></div>` : ''}
-    ${me()?.super ? `<div class="demo-banner">Du bist als <b>Gesamtverwaltung</b> angemeldet. <button class="secondary" data-act="goto" data-h="verwaltung">Zur Verwaltung</button></div>` : ''}
+    ${me()?.super ? `<div class="demo-banner">Du bist als <b>Gesamtverwaltung</b> angemeldet und kannst hier nur verwalten, nichts eintragen. <button class="secondary" data-act="switch-to-house">Mit Haus-Zugang anmelden</button> <button class="secondary" data-act="goto" data-h="verwaltung">Zur Verwaltung</button></div>` : ''}
     ${canEditTexts() ? `<div class="edit-bar"><button class="small ${S.editMode ? '' : 'secondary'}" data-act="edit-mode">${S.editMode ? '✓ Fertig mit Bearbeiten' : '✏️ Texte bearbeiten'}</button>${S.editMode ? `<span>Tippe auf einen umrandeten Text. Gilt ${session.isSuper ? 'für <b>alle Häuser</b>' : 'nur für <b>dieses Haus</b>'}.</span>` : ''}</div>` : ''}
     ${title ? `<h1>${title}</h1>` : ''}${lead ? `<p class="lead">${lead}</p>` : ''}`;
 }
@@ -274,6 +385,7 @@ function header(title, lead) {
 // ---------- Laden ----------
 async function loadState() {
   S.st = await call('GET', '/state');
+  if (S.st.me.super) S.st.me.name = txt('super_name');
   S.users = new Map(S.st.users.map((u) => [u.id, u]));
   S.loadedAt = Date.now();
 }
@@ -498,7 +610,7 @@ function renderList(col, withTabs) {
     ${tabs}${withTabs ? `<p class="lead">${intro}</p>` : ''}
     ${items.length ? items.map((it) => card(col, it)).join('') : `<div class="empty">${tx('empty_list')}</div>`}
     ${past ? `<p class="empty" style="padding:8px">${past} vergangene Einträge werden ausgeblendet.</p>` : ''}
-    ${me().super ? '' : `<button class="fab" data-act="new" data-col="${col}">＋ ${tx(`mod_${col}_add`)}</button>`}`;
+    ${me().super ? `<p class="empty" style="padding:8px">Zum Eintragen bitte mit deinem Haus-Zugang anmelden.</p>` : `<button class="fab" data-act="new" data-col="${col}">＋ ${tx(`mod_${col}_add`)}</button>`}`;
 }
 
 function ownerActions(col, it) {
@@ -609,7 +721,7 @@ function renderMenu() {
     ${header('Mehr', '')}
     ${extra.length ? `<div class="card list-menu">${extra.map((m) => `<a href="#m/${m}"><span class="ic">${MOD[m].ic}</span><span>${tx(`mod_${m}_name`)}<br><small style="font-weight:400;color:var(--ink-soft)">${tx(`mod_${m}_desc`)}</small></span></a>`).join('')}</div>` : ''}
     <div class="card list-menu">
-      ${me().super ? '' : '<a href="#profil"><span class="ic">👤</span>Mein Profil</a>'}
+      <a href="#profil"><span class="ic">👤</span>Mein Profil</a>
       <a href="#was"><span class="ic">🏡</span>Was ist das hier?</a>
       <a href="#wie"><span class="ic">❓</span>Wie funktioniert das?</a>
       <a href="#feedback"><span class="ic">✉️</span>Fehler melden & Feedback</a>
@@ -627,10 +739,25 @@ function installHelp() {
 
 function renderProfile() {
   const m = me();
+  if (m.super) {
+    app.innerHTML = `${header('Mein Profil', '')}
+      <div class="card"><form data-form="super-name">
+        <label for="p-sn">Dein Name als Gesamtverwaltung</label>
+        <input id="p-sn" name="name" type="text" maxlength="40" value="${esc(m.name)}">
+        <p class="hint">Wird nur dir angezeigt. Zum Eintragen und für deinen Namen im Haus nutze deinen Haus-Zugang.</p>
+        <div class="sheet-actions"><button>Speichern</button></div>
+      </form></div>
+      <div class="card"><h2>Schriftgröße</h2>
+        <div class="actions"><button class="${document.documentElement.classList.contains('big') ? 'secondary' : ''}" data-act="font" data-big="0">Normal</button>
+        <button class="${document.documentElement.classList.contains('big') ? '' : 'secondary'}" data-act="font" data-big="1" style="font-size:1.15rem">Größer</button></div></div>`;
+    return;
+  }
   app.innerHTML = `
     ${header('Mein Profil', '')}
     <div class="card"><form data-form="profile">
-      <label>Name</label><p class="text" style="margin:0"><b>${esc(m.name)}</b></p>
+      <label for="p-n0">Dein Name im Haus</label>
+      <input id="p-n0" name="name" type="text" required minlength="2" maxlength="40" value="${esc(m.name)}">
+      <p class="hint">So sehen dich die anderen. Damit meldest du dich auch an.</p>
       <label for="p-c">Wie erreicht man dich?</label>
       <input id="p-c" name="contact" type="text" maxlength="200" value="${esc(m.contact)}" placeholder="z. B. 3. OG links – einfach klingeln">
       <p class="hint">Wird bei deinen Einträgen angezeigt, wenn jemand auf „Kontakt“ tippt.</p>
@@ -836,6 +963,7 @@ const actions = {
   'login-mode': (d) => { S.loginMode = d.mode; renderLogin(); },
   'other-house': () => { session.slug = ''; S.loginHouse = null; S.forceNoHouse = true; history.replaceState(null, '', location.pathname + (location.search.includes('demo') ? '?demo' : '') + '#start'); renderLogin(); },
   'reload-page': () => location.reload(),
+  'switch-to-house': () => { const slug = session.slug; session.clear(); session.slug = slug; S.st = null; S.loginHouse = null; S.loginMode = 'login'; go('start'); },
   'demo-login': async () => { try { const r = await call('POST', '/login', { slug: 'demo', name: 'Eric', password: 'demo123' }); await afterLogin(r.token, 'demo'); } catch (e) { toast(e.message); } },
   'reset-demo': () => { resetDemo(); location.reload(); },
   'dismiss-welcome': () => { session.pref('welcomed', '1'); renderStart(); },
@@ -962,7 +1090,8 @@ const forms = {
     await reload();
   },
   lend: async (fd, form) => { await call('PUT', `/items/things/${form.dataset.id}`, { status: 'verliehen', lentTo: fd.get('lentTo'), returnDate: fd.get('returnDate') }); closeSheet(); toast('Als verliehen markiert'); await reload(); },
-  profile: async (fd) => { const r = await call('PUT', '/me', { contact: fd.get('contact') }); S.st.me = r.me; toast('Gespeichert'); await reload(); },
+  profile: async (fd) => { const r = await call('PUT', '/me', { name: fd.get('name'), contact: fd.get('contact') }); S.st.me = r.me; toast('Gespeichert'); await reload(); },
+  'super-name': async (fd) => { await call('PUT', '/admin/texts', { key: 'super_name', value: String(fd.get('name') || '').trim() || null }); await loadTexts(); await loadState(); toast('Gespeichert'); renderProfile(); },
   password: async (fd, form) => { const r = await call('PUT', '/me', { oldPassword: fd.get('oldPassword'), password: fd.get('password') }); if (r.token) session.token = r.token; form.reset(); toast('Passwort geändert'); },
   feedback: async (fd, form) => {
     const file = fd.get('screenshot');

@@ -81,6 +81,9 @@ assert.equal(r.body.data.defects.length, 0); assert.equal(Object.keys(r.body.dat
 for (let i = 0; i < 8; i++) await call('POST', '/login', { body: { slug, name: 'Eric', password: 'x' } });
 r = await call('POST', '/login', { body: { slug, name: 'Eric', password: 'geheim1' } }); assert.equal(r.status, 429);
 
+// Namen ändern
+r = await call('PUT', '/me', { token: eric, body: { name: 'Eric E.' } }); assert.equal(r.body.me.name, 'Eric E.');
+r = await call('POST', '/login', { body: { slug, name: 'eric e.', password: 'geheim1' } }); assert.equal(r.status, 429); // noch gesperrt vom Rate-Limit-Test
 // Texte
 r = await call('PUT', '/admin/texts', { token: sup, body: { key: 'was_intro', value: 'Global' } }); assert.equal(r.body.scope, 'global');
 r = await call('PUT', '/admin/texts', { token: eric, body: { key: 'was_intro', value: 'Nur Haus' } }); assert.equal(r.body.scope, 'house');
