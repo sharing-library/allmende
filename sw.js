@@ -1,6 +1,6 @@
 // Allmende – Service Worker: speichert die App-Dateien für schnelles Laden und Offline-Start.
 // Daten (Einträge) werden NICHT zwischengespeichert, die kommen immer frisch vom Worker.
-const VERSION = 'allmende-v5';
+const VERSION = 'allmende-v6';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'api.js', 'core.js', 'config.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {

@@ -16,19 +16,58 @@ const ago = (iso) => {
   return d <= 0 ? 'heute' : d === 1 ? 'gestern' : d < 30 ? `vor ${d} Tagen` : new Date(iso).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
-const MOD = {
-  things:   { ic: '🔧', name: 'Dinge leihen', short: 'Dinge', desc: 'Werkzeug & Co., das Nachbar*innen verleihen', add: 'Ding eintragen' },
-  skills:   { ic: '🤝', name: 'Fähigkeiten', short: 'Können', desc: 'Wobei Nachbar*innen helfen können', add: 'Fähigkeit eintragen' },
-  requests: { ic: '🙋', name: 'Ich suche …', short: 'Ich suche', desc: 'Bitten um Hilfe oder Dinge', add: 'Etwas suchen' },
-  gifts:    { ic: '🎁', name: 'Verschenkekiste', short: 'Verschenken', desc: 'Dinge & Essen, das weg darf', add: 'Etwas verschenken' },
-  events:   { ic: '📅', name: 'Kalender', short: 'Kalender', desc: 'Was im und ums Haus passiert', add: 'Termin eintragen' },
-  away:     { ic: '🧳', name: 'Bin weg / Bin da', short: 'Weg / Da', desc: 'Blumen gießen, Pakete annehmen', add: 'Eintragen' },
-  defects:  { ic: '🛠️', name: 'Mängel im Haus', short: 'Mängel', desc: 'Was kaputt ist – gesammelt', add: 'Mangel melden' },
-  info:     { ic: '📌', name: 'Hausinfo', short: 'Hausinfo', desc: 'Müll, Hausverwaltung, Notfall', add: 'Info eintragen' },
-  rides:    { ic: '🚲', name: 'Ich fahre los', short: 'Fahre los', desc: 'Baumarkt, Wertstoffhof – was mitbringen?', add: 'Fahrt eintragen' },
-  polls:    { ic: '🗳️', name: 'Umfragen', short: 'Umfragen', desc: 'Gemeinsam entscheiden', add: 'Umfrage starten' },
-  thanks:   { ic: '💛', name: 'Danke-Wand', short: 'Danke', desc: 'Kleine Dankeschöns', add: 'Danke sagen' },
+// ---------- Symbole (einfarbig, im Stil der Fußleiste) ----------
+const IC = {
+  wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
+  bulb: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
+  search: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
+  gift: '<rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8.5h14V12M12 8v12.5"/><path d="M12 8C10.5 4.5 7 4.5 7 6.5S10 8 12 8zm0 0c1.5-3.5 5-3.5 5-1.5S14 8 12 8z"/>',
+  cal: '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  bag: '<rect x="3.5" y="7.5" width="17" height="12" rx="2"/><path d="M9 7.5v-2A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5v2M3.5 12.5h17"/>',
+  alert: '<path d="M12 4 2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17.2v.3"/>',
+  info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8v.3"/>',
+  bike: '<circle cx="6" cy="16" r="3.5"/><circle cx="18" cy="16" r="3.5"/><path d="M6 16l4-8h5l3 8M10 8l3.5 8H6M14 5.5h2.5"/>',
+  poll: '<path d="M5 20V11M12 20V5M19 20v-6"/>',
+  heart: '<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>',
+  user: '<circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20.5c1.2-3.8 4-5.5 7.5-5.5s6.3 1.7 7.5 5.5"/>',
+  users: '<circle cx="9" cy="9" r="3.3"/><path d="M3 19.5c.9-3.2 3.2-4.7 6-4.7s5.1 1.5 6 4.7"/><path d="M15.5 6a3.2 3.2 0 0 1 0 6.2M17.5 14.9c1.8.6 3 2 3.5 4.6"/>',
+  home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
+  help: '<circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.4M12 16.8v.3"/>',
+  mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4 7 8 6 8-6"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5M16 7l2.5 2.5M14 9l2 2"/>',
+  logout: '<path d="M14 4.5h4.5v15H14M10 8l-4 4 4 4M6 12h9"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  phone: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
+  box: '<path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/>',
+  lock: '<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
+  pin: '<path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/>',
+  edit: '<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  chevron: '<path d="m9 6 6 6-6 6"/>',
+  left: '<path d="m15 6-6 6 6 6"/>',
 };
+const ic = (k, cls = '') => `<svg class="i${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
+
+const MOD = {
+  things:   { ic: 'wrench', name: 'Dinge leihen', short: 'Dinge', desc: 'Werkzeug & Co., das Nachbar*innen verleihen', add: 'Ding eintragen' },
+  skills:   { ic: 'bulb', name: 'Fähigkeiten', short: 'Können', desc: 'Wobei Nachbar*innen helfen können', add: 'Fähigkeit eintragen' },
+  requests: { ic: 'search', name: 'Ich suche …', short: 'Ich suche', desc: 'Bitten um Hilfe oder Dinge', add: 'Etwas suchen' },
+  gifts:    { ic: 'gift', name: 'Verschenkekiste', short: 'Verschenken', desc: 'Dinge & Essen, das weg darf', add: 'Etwas verschenken' },
+  events:   { ic: 'cal', name: 'Kalender', short: 'Kalender', desc: 'Was im und ums Haus passiert', add: 'Termin eintragen' },
+  away:     { ic: 'bag', name: 'Bin weg / Bin da', short: 'Weg / Da', desc: 'Blumen gießen, Pakete annehmen', add: 'Eintragen' },
+  defects:  { ic: 'alert', name: 'Mängel im Haus', short: 'Mängel', desc: 'Was kaputt ist – gesammelt', add: 'Mangel melden' },
+  info:     { ic: 'info', name: 'Hausinfo', short: 'Hausinfo', desc: 'Müll, Hausverwaltung, Notfall', add: 'Info eintragen' },
+  rides:    { ic: 'bike', name: 'Ich fahre los', short: 'Fahre los', desc: 'Baumarkt, Wertstoffhof – was mitbringen?', add: 'Fahrt eintragen' },
+  polls:    { ic: 'poll', name: 'Umfragen', short: 'Umfragen', desc: 'Gemeinsam entscheiden', add: 'Umfrage starten' },
+  thanks:   { ic: 'heart', name: 'Danke-Wand', short: 'Danke', desc: 'Kleine Dankeschöns', add: 'Danke sagen' },
+};
+const mic = (m) => ic(MOD[m].ic);
+// „Ich suche“ und Verschenkekiste verschwinden eine Woche nach dem Eintragen bzw. der letzten Änderung
+const EXPIRE_DAYS = { requests: 7, gifts: 7 };
+const ageDays = (it) => (Date.now() - new Date(it.up || it.at).getTime()) / 86400000;
+const expired = (col, it) => !!EXPIRE_DAYS[col] && ageDays(it) > EXPIRE_DAYS[col];
+const daysLeft = (col, it) => Math.max(0, Math.ceil(EXPIRE_DAYS[col] - ageDays(it)));
 const SHARE_TABS = ['things', 'skills', 'requests'];
 const MENU_MODS = ['away', 'defects', 'info', 'rides', 'polls', 'thanks'];
 
@@ -39,25 +78,28 @@ const D = {
   super_name: 'Gesamtverwaltung',
   login_lead: 'Hier teilen Nachbar*innen Werkzeug, Fähigkeiten und Zeit – kostenlos, ohne Werbung, ohne Datensammeln.',
   start_lead: 'Schön, dass du da bist. Was brauchst du heute?',
-  welcome_title: '👋 Schön, dass du da bist!',
+  start_q: 'Was haben wir alles im Haus?',
+  start_more: 'Weitere Bereiche',
+  start_cal: 'Kalender',
+  welcome_title: 'Schön, dass du da bist!',
   welcome_text: 'Neu hier? In zwei Minuten erklärt: worum es geht und was mit deinen Daten passiert.',
   was_title: 'Was ist das hier?',
   was_intro: '**Allmende** nannte man früher das Land, das allen im Dorf gemeinsam gehörte: die Wiese, den Brunnen, den Wald. Niemand musste alles allein besitzen, weil man es teilte.\n\nDiese App ist eine kleine Allmende für unser Haus. Hier teilen wir Werkzeug, Fähigkeiten und Zeit, verschenken, was wir nicht mehr brauchen, und wissen, was im Haus los ist.\n\nEine Bohrmaschine wird im Schnitt nur wenige Minuten im Jahr benutzt. Nicht jeder Haushalt braucht eine eigene Leiter, einen Pömpel oder ein Dörrgerät – **es reicht, wenn einer im Haus es hat und teilt.**',
-  was_safety_title: '🔒 Sicherheit & Daten',
+  was_safety_title: 'Sicherheit & Daten',
   was_safety: '- **Komplett kostenlos.** Jetzt und für immer. Keine Abos, keine Premium-Version.\n- **Keine Werbung, kein Tracking, keine Cookies.** Es werden keine Daten gesammelt, ausgewertet, verkauft oder weitergegeben.\n- **Keine privaten Daten nötig.** Kein echter Name, keine E-Mail, keine Telefonnummer, keine Adresse. Nur ein Name, unter dem dich die anderen im Haus erkennen.\n- **Nur fürs Haus.** Hineinkommen kann nur, wer Link und Hauspasswort hat. Jedes Haus sieht nur seine eigenen Einträge.\n- **Passwörter sind verschlüsselt.** Niemand – auch die Verwaltung nicht – kann sie lesen.\n- **Du hast die Kontrolle.** Du kannst deine Einträge jederzeit ändern oder löschen, und deinen ganzen Zugang auch.',
   was_tech: 'Technisch ehrlich: Gespeichert wird nur, was du selbst einträgst. Die Daten liegen in einem privaten Speicher bei GitHub und werden über Cloudflare übertragen – das ist reine Technik, über die nichts ausgewertet wird. Die App lädt keine Schriften, Skripte oder Bilder von fremden Servern. Die Verwaltung ({verwaltung}) kann technisch alle Einträge sehen, um bei Problemen helfen zu können, aber keine Passwörter.',
-  was_who_title: '👋 Wer steckt dahinter?',
+  was_who_title: 'Wer steckt dahinter?',
   was_who: 'Allmende ist ein kleines Soloprojekt von {verwaltung} – ohne kommerzielle Absicht, ohne Firma dahinter. Einfach, weil gute Nachbarschaft einfacher sein darf.\n\nTipps, Fragen, Ideen oder ein Fehler? Schreib gern eine kurze Beschreibung und – wenn möglich – einen Screenshot.',
   wie_title: 'Wie funktioniert das?',
-  wie_steps: '1. **Anmelden:** Beim ersten Mal mit dem Hauspasswort einen eigenen Zugang anlegen (Name + Passwort). Danach reicht dein Name und Passwort.\n2. **Stöbern:** Unten in der Leiste findest du alle Bereiche. Auf der Startseite kannst du auch nach allem suchen.\n3. **Eintragen:** In jedem Bereich gibt es unten rechts einen gelben Knopf „＋“. Damit trägst du etwas ein – zum Beispiel deine Leiter.\n4. **Kontakt aufnehmen:** Tippe bei einem Eintrag auf „Kontakt“. Dort steht, wie man die Person erreicht – z. B. „3. OG, einfach klingeln“. Den Rest klärt ihr direkt.\n5. **Verleihen:** Wenn du etwas verliehen hast, tippe auf „Verliehen“ und trag ein, bis wann. Dann sehen die anderen, dass es gerade weg ist, und du bekommst eine Erinnerung.\n6. **Ändern & Löschen:** Deine eigenen Einträge kannst du jederzeit mit „Bearbeiten“ oder „Löschen“ anpassen.\n7. **Als App aufs Handy:** iPhone: Teilen-Symbol → „Zum Home-Bildschirm“. Android: Browser-Menü (⋮) → „App installieren“.\n8. **Passwort vergessen?** Es gibt keine E-Mail. Sag {verwaltung} Bescheid – dein Passwort wird dann zurückgesetzt.',
+  wie_steps: '1. **Anmelden:** Beim ersten Mal mit dem Hauspasswort einen eigenen Zugang anlegen (Name + Passwort). Danach reicht dein Name und Passwort.\n2. **Stöbern:** Unten in der Leiste findest du alle Bereiche. Auf der Startseite kannst du auch nach allem suchen.\n3. **Eintragen:** In jedem Bereich gibt es unten rechts einen gelben Knopf „+“. Damit trägst du etwas ein – zum Beispiel deine Leiter.\n4. **Kontakt aufnehmen:** Tippe bei einem Eintrag auf „Kontakt“. Dort steht, wie man die Person erreicht – z. B. „3. OG, einfach klingeln“. Den Rest klärt ihr direkt.\n5. **Verleihen:** Wenn du etwas verliehen hast, tippe auf „Verliehen“ und trag ein, bis wann. Dann sehen die anderen, dass es gerade weg ist, und du bekommst eine Erinnerung.\n6. **Ändern & Löschen:** Deine eigenen Einträge kannst du jederzeit mit „Bearbeiten“ oder „Löschen“ anpassen.\n7. **Als App aufs Handy:** iPhone: Teilen-Symbol → „Zum Home-Bildschirm“. Android: Browser-Menü (⋮) → „App installieren“.\n8. **Passwort vergessen?** Es gibt keine E-Mail. Sag {verwaltung} Bescheid – dein Passwort wird dann zurückgesetzt.',
   wie_areas_title: 'Die Bereiche',
   feedback_title: 'Fehler melden & Feedback',
   feedback_lead: 'Danke, dass du hilfst, die App besser zu machen! Deine Nachricht geht direkt an {verwaltung}.',
   empty_list: 'Hier ist noch nichts.\nMach den Anfang!',
   intro_things: 'Dinge, die Nachbar*innen verleihen. Tippe auf „Kontakt“, um zu fragen.',
   intro_skills: 'Wobei Nachbar*innen gern helfen.',
-  intro_requests: 'Hier bitten Nachbar*innen um Hilfe oder suchen etwas. Kannst du helfen?',
-  intro_gifts: 'Alles hier ist geschenkt. Einfach melden und abholen.',
+  intro_requests: 'Hier bitten Nachbar*innen um Hilfe oder suchen etwas. Kannst du helfen? Einträge verschwinden nach einer Woche von selbst.',
+  intro_gifts: 'Alles hier ist geschenkt. Einfach melden und abholen. Einträge verschwinden nach einer Woche von selbst.',
   intro_events: 'Termine im und ums Haus: Infos, Feiern, Einladungen.',
   intro_away: 'Wer ist verreist und braucht Hilfe? Wer ist da und nimmt Pakete an?',
   intro_defects: 'Was im Haus kaputt ist. Wenn es dich auch betrifft, tippe „Betrifft mich auch“ – so sieht man, wie viele es stört.',
@@ -71,7 +113,8 @@ for (const m of Object.keys(MOD)) { D[`mod_${m}_name`] = MOD[m].name; D[`mod_${m
 let TEXTS = {};
 try { TEXTS = JSON.parse(localStorage.getItem('allmende:texts') || '{}'); } catch {}
 let TEXT_LAYERS = { global: {}, house: {} };
-const raw = (k) => (TEXTS[k] ?? D[k] ?? '');
+const EMOJI = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B50}\u{23F0}-\u{23FA}\u{FE0F}\u{200D}]\s?/gu;
+const raw = (k) => String(TEXTS[k] ?? D[k] ?? '').replace(EMOJI, '');
 const inlineMd = (src) => esc(src).replace(/\{verwaltung\}/g, esc(MAINTAINER)).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>');
 function blockMd(src, listCls) {
   return String(src).split(/\n\s*\n/).map((blk) => {
@@ -98,7 +141,7 @@ async function loadTexts() {
 const canEditTexts = () => session.isSuper || !!me()?.admin;
 
 const CATEGORIES = ['Werkzeug', 'Haushalt', 'Küche', 'Garten & Balkon', 'Freizeit & Sport', 'Kinder', 'Sonstiges'];
-const EVENT_KINDS = { info: 'ℹ️ Info fürs Haus', laut: '🎉 Feier – kann lauter werden', einladung: '☕ Einladung – kommt vorbei', sonst: '📌 Sonstiges' };
+const EVENT_KINDS = { info: 'Info fürs Haus', laut: 'Feier – kann lauter werden', einladung: 'Einladung – kommt vorbei', sonst: 'Sonstiges' };
 const DEFECT_STATUS = { offen: 'Offen', gemeldet: 'Bei Hausverwaltung gemeldet', behoben: 'Behoben' };
 const DEFECT_SHORT = { offen: 'offen', gemeldet: 'gemeldet', behoben: 'behoben' };
 
@@ -122,7 +165,7 @@ const FORMS = {
   ],
   gifts: [
     { k: 'title', label: 'Was verschenkst du?', req: 1, ph: 'z. B. Puzzle, 1000 Teile' },
-    { k: 'kind', label: 'Art', type: 'select', opts: { ding: '🎁 Ein Ding', essen: '🍲 Essen übrig' } },
+    { k: 'kind', label: 'Art', type: 'select', opts: { ding: 'Ein Ding', essen: 'Essen übrig' } },
     { k: 'text', label: 'Beschreibung', type: 'textarea' },
     { k: 'photo', label: 'Foto', type: 'photo' },
     { k: 'contact', label: 'Wo abholen?', ph: 'leer = Kontakthinweis aus deinem Profil' },
@@ -136,7 +179,7 @@ const FORMS = {
     { k: 'text', label: 'Beschreibung', type: 'textarea' },
   ],
   away: [
-    { k: 'kind', label: 'Was möchtest du sagen?', type: 'select', opts: { weg: '🧳 Ich bin weg', da: '📦 Ich bin da und nehme Pakete an' } },
+    { k: 'kind', label: 'Was möchtest du sagen?', type: 'select', opts: { weg: 'Ich bin weg', da: 'Ich bin da und nehme Pakete an' } },
     { k: 'from', label: 'Ab / Am', type: 'date', req: 1 },
     { k: 'to', label: 'Bis', type: 'date', hint: 'Nur bei „Ich bin weg“ nötig.' },
     { k: 'text', label: 'Nachricht', type: 'textarea', ph: 'z. B. Wer kann Blumen gießen? / Bin bis 18 Uhr zuhause.' },
@@ -370,15 +413,25 @@ function renderNav() {
   }).join('')}</div>`;
 }
 
+// Logo im Blocksatz: beide Wörter exakt gleich breit
+function logo() {
+  return `<svg class="logo" viewBox="0 0 132 46" width="132" height="46" role="img" aria-label="allmende – teilgut">
+    <text x="0" y="25" textLength="132" lengthAdjust="spacingAndGlyphs" class="l1">allmende</text>
+    <text x="1" y="42" textLength="130" lengthAdjust="spacing" class="l2">teilgut</text></svg>`;
+}
 function header(title, lead) {
   return `
     <div class="top">
-      <div class="brand"><b>allmende</b><small>teilgut</small></div>
-      <div class="house-name">${esc(S.st?.house.name || '')}</div>
+      <a class="brand" href="#start" aria-label="allmende – teilgut, zur Startseite">${logo()}</a>
+      <nav class="top-help" aria-label="Hilfe">
+        <a href="#was" ${route()[0] === 'was' ? 'aria-current="page"' : ''}>${ic('info')}<span>Was ist das?</span></a>
+        <a href="#wie" ${route()[0] === 'wie' ? 'aria-current="page"' : ''}>${ic('help')}<span>So geht's</span></a>
+      </nav>
     </div>
+    ${S.st?.house.name ? `<div class="house-name">${ic('home')} ${esc(S.st.house.name)}</div>` : ''}
     ${DEMO ? `<div class="demo-banner"><b>Demo-Modus</b> – alles bleibt nur auf diesem Gerät. <button class="secondary" data-act="reset-demo">Demo zurücksetzen</button></div>` : ''}
     ${me()?.super ? `<div class="demo-banner">Du bist als <b>Gesamtverwaltung</b> angemeldet und kannst hier nur verwalten, nichts eintragen. <button class="secondary" data-act="switch-to-house">Mit Haus-Zugang anmelden</button> <button class="secondary" data-act="goto" data-h="verwaltung">Zur Verwaltung</button></div>` : ''}
-    ${canEditTexts() ? `<div class="edit-bar"><button class="small ${S.editMode ? '' : 'secondary'}" data-act="edit-mode">${S.editMode ? '✓ Fertig mit Bearbeiten' : '✏️ Texte bearbeiten'}</button>${S.editMode ? `<span>Tippe auf einen umrandeten Text. Gilt ${session.isSuper ? 'für <b>alle Häuser</b>' : 'nur für <b>dieses Haus</b>'}.</span>` : ''}</div>` : ''}
+    ${canEditTexts() ? `<div class="edit-bar"><button class="small ${S.editMode ? '' : 'secondary'}" data-act="edit-mode">${S.editMode ? 'Fertig mit Bearbeiten' : ic('edit') + ' Texte bearbeiten'}</button>${S.editMode ? `<span>Tippe auf einen umrandeten Text. Gilt ${session.isSuper ? 'für <b>alle Häuser</b>' : 'nur für <b>dieses Haus</b>'}.</span>` : ''}</div>` : ''}
     ${title ? `<h1>${title}</h1>` : ''}${lead ? `<p class="lead">${lead}</p>` : ''}`;
 }
 
@@ -484,8 +537,6 @@ async function renderLogin() {
         <p class="hint" style="margin-top:14px"><button class="link" data-act="other-house">Anderes Haus wählen</button></p>`}
     </div>
     <div class="small-links">
-      <a class="link" href="#was">Was ist das hier?</a>
-      <a class="link" href="#wie">Wie funktioniert das?</a>
       <a class="link" href="#verwaltung-login">Verwaltung</a>
     </div>`;
 }
@@ -503,7 +554,7 @@ function renderAdminLogin() {
 // ---------- Startseite ----------
 function allItems() {
   const out = [];
-  for (const m of mods()) for (const it of S.st.data[m] || []) out.push({ m, it });
+  for (const m of mods()) for (const it of S.st.data[m] || []) if (!expired(m, it)) out.push({ m, it });
   return out;
 }
 
@@ -519,20 +570,20 @@ function renderStart() {
   for (const t of d.things || []) {
     if (t.by !== mine.id || t.status !== 'verliehen' || !t.returnDate) continue;
     const diff = daysBetween(today, t.returnDate);
-    if (diff < 0) notices.push(`<div class="card notice red"><h3>⏰ ${esc(t.title)}</h3><p class="text">Sollte seit ${fmtDay(t.returnDate)} zurück sein${t.lentTo ? ` (verliehen an ${esc(t.lentTo)})` : ''}.</p><div class="actions"><button class="small" data-act="returned" data-id="${t.id}">Ist zurück</button></div></div>`);
-    else if (diff <= 1) notices.push(`<div class="card notice"><h3>⏰ ${esc(t.title)}</h3><p class="text">Kommt ${diff === 0 ? 'heute' : 'morgen'} zurück${t.lentTo ? ` von ${esc(t.lentTo)}` : ''}.</p></div>`);
+    if (diff < 0) notices.push(`<div class="card notice red"><h3>${ic('clock')} ${esc(t.title)}</h3><p class="text">Sollte seit ${fmtDay(t.returnDate)} zurück sein${t.lentTo ? ` (verliehen an ${esc(t.lentTo)})` : ''}.</p><div class="actions"><button class="small" data-act="returned" data-id="${t.id}">Ist zurück</button></div></div>`);
+    else if (diff <= 1) notices.push(`<div class="card notice"><h3>${ic('clock')} ${esc(t.title)}</h3><p class="text">Kommt ${diff === 0 ? 'heute' : 'morgen'} zurück${t.lentTo ? ` von ${esc(t.lentTo)}` : ''}.</p></div>`);
   }
   if (S.installEvt && !session.pref('install-dismissed')) {
-    notices.push(`<div class="card notice"><h3>📱 Als App aufs Handy</h3><p class="text">Allmende lässt sich wie eine App auf dem Startbildschirm ablegen.</p><div class="actions"><button data-act="install">Installieren</button><button class="secondary" data-act="dismiss-install">Später</button></div></div>`);
+    notices.push(`<div class="card notice"><h3>${ic('phone')} Als App aufs Handy</h3><p class="text">Allmende lässt sich wie eine App auf dem Startbildschirm ablegen.</p><div class="actions"><button data-act="install">Installieren</button><button class="secondary" data-act="dismiss-install">Später</button></div></div>`);
   }
 
   // Heute im Haus
   const todayBits = [];
   for (const a of d.away || []) {
-    if (a.kind === 'da' && a.from === today) todayBits.push(`📦 <b>${esc(userName(a.by))}</b> ist heute da${a.text ? ` – ${esc(a.text)}` : ' und nimmt Pakete an'}`);
-    if (a.kind === 'weg' && a.from <= today && (a.to || a.from) >= today) todayBits.push(`🧳 <b>${esc(userName(a.by))}</b> ist weg bis ${fmtDay(a.to || a.from)}`);
+    if (a.kind === 'da' && a.from === today) todayBits.push(`${ic('box')} <b>${esc(userName(a.by))}</b> ist heute da${a.text ? ` – ${esc(a.text)}` : ' und nimmt Pakete an'}`);
+    if (a.kind === 'weg' && a.from <= today && (a.to || a.from) >= today) todayBits.push(`${ic('bag')} <b>${esc(userName(a.by))}</b> ist weg bis ${fmtDay(a.to || a.from)}`);
   }
-  for (const e of d.events || []) if (e.date === today || (e.endDate && e.date <= today && e.endDate >= today)) todayBits.push(`📅 Heute: <b>${esc(e.title)}</b>${e.time ? ` um ${e.time} Uhr` : ''}`);
+  for (const e of d.events || []) if (e.date === today || (e.endDate && e.date <= today && e.endDate >= today)) todayBits.push(`${ic('cal')} Heute: <b>${esc(e.title)}</b>${e.time ? ` um ${e.time} Uhr` : ''}`);
 
   const upcoming = (d.events || []).filter((e) => e.date > today).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).slice(0, 3);
 
@@ -540,18 +591,80 @@ function renderStart() {
   const fresh = S.prevSeen ? allItems().filter(({ it }) => it.by !== mine.id && new Date(it.at).getTime() > S.prevSeen).sort((a, b) => b.it.at.localeCompare(a.it.at)).slice(0, 6) : [];
 
   app.innerHTML = `
-    ${header(`Hallo ${esc(mine.name)}!`, tx('start_lead'))}
-    <form class="search" data-form="search" role="search"><input type="search" name="q" placeholder="🔎 Suchen, z. B. „Bohrer“ oder „Leiter“" aria-label="Suchen" autocomplete="off"></form>
+    ${header(`Hallo ${esc(mine.name)}!`, '')}
+    <form class="search" data-form="search" role="search"><span class="search-ic">${ic('search')}</span><input type="search" name="q" placeholder="Suchen, z. B. „Bohrer“ oder „Leiter“" aria-label="Suchen" autocomplete="off"></form>
     <div id="search-results"></div>
     <div id="start-body">
       ${notices.join('')}
-      ${todayBits.length ? `<h2 class="section-title">Heute im Haus</h2><div class="card">${todayBits.map((b) => `<p style="margin:6px 0">${b}</p>`).join('')}</div>` : ''}
-      ${fresh.length ? `<h2 class="section-title">✨ Neu seit deinem letzten Besuch</h2>${fresh.map(({ m, it }) => miniCard(m, it)).join('')}` : ''}
-      ${upcoming.length ? `<h2 class="section-title">📅 Demnächst</h2>${upcoming.map((e) => card('events', e)).join('')}` : ''}
-      <h2 class="section-title">Alles im Überblick</h2>
-      <div class="tiles">${mods().map((m) => `<a class="tile" href="#${hrefFor(m)}"><span class="ic">${MOD[m].ic}</span><b>${tx(`mod_${m}_name`)}</b><span>${tx(`mod_${m}_desc`)}</span></a>`).join('')}</div>
+      ${todayBits.length ? `<h2 class="section-title">Heute im Haus</h2><div class="card today">${todayBits.map((b) => `<p>${b}</p>`).join('')}</div>` : ''}
+      <h2 class="hero-q">${tx('start_q')}</h2>
+      ${inventory()}
+      ${fresh.length ? `<h2 class="section-title">Neu seit deinem letzten Besuch</h2>${fresh.map(({ m, it }) => miniCard(m, it)).join('')}` : ''}
+      ${has('events') ? `<h2 class="section-title">${tx('start_cal')}</h2>${monthCal(true)}` : ''}
     </div>`;
 }
+
+// „Was haben wir alles im Haus?“ – die ersten Einträge je Rubrik, ein Klick führt zur Rubrik
+const INV_MODS = ['things', 'skills', 'gifts', 'requests'];
+function inventory() {
+  const groups = INV_MODS.filter(has).map((m) => {
+    const items = sortItems(m, S.st.data[m] || []);
+    const max = 8;
+    const chips = items.slice(0, max).map((it) => {
+      const off = (m === 'things' && it.status === 'verliehen') || (m === 'gifts' && it.status === 'reserviert');
+      return `<a class="chip${off ? ' off' : ''}" href="#${hrefFor(m)}" title="${off ? (m === 'things' ? 'gerade verliehen' : 'reserviert') : ''}">${esc(it.title)}</a>`;
+    }).join('');
+    return `<section class="inv">
+      <a class="inv-head" href="#${hrefFor(m)}"><span class="inv-ic">${mic(m)}</span><b>${tx(`mod_${m}_name`)}</b><span class="count">${items.length}</span><span class="go">${ic('chevron')}</span></a>
+      ${items.length ? `<div class="chips">${chips}${items.length > max ? `<a class="chip more" href="#${hrefFor(m)}">+ ${items.length - max} weitere</a>` : ''}</div>`
+        : `<p class="inv-empty">Noch nichts eingetragen. <button class="link" data-act="new" data-col="${m}">${txt(`mod_${m}_add`)}</button></p>`}
+    </section>`;
+  }).join('');
+  const rest = mods().filter((m) => !INV_MODS.includes(m) && m !== 'events');
+  return `<div class="card inv-card">${groups}</div>
+    ${rest.length ? `<div class="more-links" aria-label="${esc(txt('start_more'))}">${rest.map((m) => `<a href="#${hrefFor(m)}">${mic(m)}<span>${tx(`mod_${m}_name`)}</span></a>`).join('')}</div>` : ''}`;
+}
+
+// ---------- Großer Monatskalender ----------
+const calMonth = () => { if (!S.calMonth) { const t = new Date(); S.calMonth = [t.getFullYear(), t.getMonth()]; } return S.calMonth; };
+function eventsByDay() {
+  const map = {};
+  for (const e of S.st.data.events || []) {
+    const end = e.endDate && e.endDate > e.date ? e.endDate : e.date;
+    for (let d = parseDay(e.date), i = 0; isoDay(d) <= end && i < 62; d.setDate(d.getDate() + 1), i++) (map[isoDay(d)] ||= []).push(e);
+  }
+  for (const k in map) map[k].sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+  return map;
+}
+function monthCal(upcoming = S.calUpcoming ?? true) {
+  S.calUpcoming = upcoming;
+  const [y, m] = calMonth();
+  const today = isoDay(), first = new Date(y, m, 1), offset = (first.getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
+  const ev = eventsByDay();
+  const cells = [];
+  for (let i = 0; i < offset; i++) cells.push('<div class="cd empty"></div>');
+  for (let d = 1; d <= days; d++) {
+    const iso = `${y}-${pad(m + 1)}-${pad(d)}`, list = ev[iso] || [];
+    const wk = (offset + d - 1) % 7 >= 5;
+    cells.push(`<button class="cd${iso === today ? ' today' : ''}${iso === S.calDay ? ' sel' : ''}${list.length ? ' has' : ''}${wk ? ' wk' : ''}${iso < today ? ' past' : ''}" data-act="cal-day" data-day="${iso}" aria-label="${fmtDay(iso, { weekday: 'long', day: 'numeric', month: 'long' })}${list.length ? `, ${list.length} Termin${list.length > 1 ? 'e' : ''}` : ''}">
+      <span class="n">${d}</span>${list.slice(0, 2).map((e) => `<span class="ev">${esc(e.title)}</span>`).join('')}${list.length > 2 ? `<span class="ev more">+${list.length - 2}</span>` : ''}${list.length ? '<i class="dot"></i>' : ''}</button>`);
+  }
+  while (cells.length % 7) cells.push('<div class="cd empty"></div>');
+  const monthName = first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+  const inMonth = (e) => (e.endDate || e.date) >= `${y}-${pad(m + 1)}-01` && e.date <= `${y}-${pad(m + 1)}-${pad(days)}`;
+  const sel = S.calDay ? (ev[S.calDay] || []) : null;
+  const below = sel
+    ? `<h3 class="cal-sub">${fmtDay(S.calDay, { weekday: 'long', day: 'numeric', month: 'long' })}</h3>${sel.length ? sel.map((e) => card('events', e)).join('') : '<p class="cal-none">An diesem Tag ist nichts eingetragen.</p>'}`
+    : !upcoming ? '' : (() => { const l = (S.st.data.events || []).filter((e) => inMonth(e) && (e.endDate || e.date) >= today).sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || ''))); return l.length ? `<h3 class="cal-sub">Demnächst im ${first.toLocaleDateString('de-DE', { month: 'long' })}</h3>${l.slice(0, 4).map((e) => card('events', e)).join('')}` : ''; })();
+  return `<div id="cal"><div class="card cal">
+      <div class="cal-top"><button class="icon-btn" data-act="cal-nav" data-dir="-1" aria-label="Voriger Monat">${ic('left')}</button>
+        <b>${monthName}</b>
+        <button class="icon-btn" data-act="cal-nav" data-dir="1" aria-label="Nächster Monat">${ic('chevron')}</button></div>
+      <div class="cal-grid"><span class="wd">Mo</span><span class="wd">Di</span><span class="wd">Mi</span><span class="wd">Do</span><span class="wd">Fr</span><span class="wd wk">Sa</span><span class="wd wk">So</span>${cells.join('')}</div>
+      <div class="cal-foot"><button class="small secondary" data-act="cal-nav" data-dir="0">Heute</button>${me().super ? '' : `<button class="small" data-act="new" data-col="events"${S.calDay ? ` data-date="${S.calDay}"` : ''}>${ic('plus')} Termin${S.calDay ? ` am ${fmtDay(S.calDay, { day: 'numeric', month: 'numeric' })}` : ''}</button>`}</div>
+    </div>${below}</div>`;
+}
+function redrawCal() { const el = $('#cal'); if (el) el.outerHTML = monthCal(); }
 
 function hrefFor(m) {
   if (SHARE_TABS.includes(m)) return 'teilen/' + m;
@@ -563,7 +676,7 @@ function hrefFor(m) {
 function miniCard(m, it) {
   const label = it.title || it.text || (m === 'away' ? (it.kind === 'weg' ? 'ist weg' : 'ist da') : '');
   return `<a class="card" href="#${hrefFor(m)}" style="display:block;text-decoration:none;color:inherit">
-    <div class="title-row"><h3>${MOD[m].ic} ${esc(label).slice(0, 90)}</h3><span class="badge new">neu</span></div>
+    <div class="title-row"><h3>${mic(m)} ${esc(label).slice(0, 90)}</h3><span class="badge new">neu</span></div>
     <div class="meta">${MOD[m].name} · von ${esc(userName(it.by))} · ${ago(it.at)}</div></a>`;
 }
 
@@ -579,13 +692,13 @@ function doSearch(q) {
   });
   box.innerHTML = hits.length
     ? `<p class="lead">${hits.length} Treffer</p>${hits.map(({ m, it }) => card(m, it, true)).join('')}`
-    : `<div class="empty">Nichts gefunden für „${esc(q)}“.<br>${has('requests') ? `<br><button data-act="new" data-col="requests" data-title="${esc(q)}">🙋 Im Haus danach fragen</button>` : ''}</div>`;
+    : `<div class="empty">Nichts gefunden für „${esc(q)}“.<br>${has('requests') ? `<br><button data-act="new" data-col="requests" data-title="${esc(q)}">Im Haus danach fragen</button>` : ''}</div>`;
 }
 
 // ---------- Listen ----------
 function sortItems(col, items) {
   const today = isoDay();
-  let list = items.slice();
+  let list = items.filter((it) => !expired(col, it));
   if (col === 'events' || col === 'rides') {
     list = list.filter((e) => (e.endDate || e.date) >= today).sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')));
   } else if (col === 'away') {
@@ -603,14 +716,18 @@ function renderList(col, withTabs) {
   const all = S.st.data[col] || [];
   const items = sortItems(col, all);
   const past = (col === 'events' || col === 'rides' || col === 'away') ? all.length - items.length : 0;
-  const tabs = withTabs ? `<div class="seg">${SHARE_TABS.filter(has).map((m) => `<a href="#teilen/${m}" ${m === col ? 'aria-current="page"' : ''}>${MOD[m].ic} ${MOD[m].short}</a>`).join('')}</div>` : '';
+  const old = all.filter((it) => expired(col, it) && it.by === me().id).sort((a, b) => (b.up || b.at).localeCompare(a.up || a.at));
+  const tabs = withTabs ? `<div class="seg">${SHARE_TABS.filter(has).map((m) => `<a href="#teilen/${m}" ${m === col ? 'aria-current="page"' : ''}>${mic(m)} ${MOD[m].short}</a>`).join('')}</div>` : '';
   const intro = tx(`intro_${col}`);
   app.innerHTML = `
-    ${header(withTabs ? 'Teilen' : `${MOD[col].ic} ${tx(`mod_${col}_name`)}`, withTabs ? '' : intro)}
+    ${header(withTabs ? 'Teilen' : `${mic(col)} ${tx(`mod_${col}_name`)}`, withTabs ? '' : intro)}
     ${tabs}${withTabs ? `<p class="lead">${intro}</p>` : ''}
+    ${col === 'events' ? monthCal(false) + '<h2 class="section-title">Alle kommenden Termine</h2>' : ''}
     ${items.length ? items.map((it) => card(col, it)).join('') : `<div class="empty">${tx('empty_list')}</div>`}
     ${past ? `<p class="empty" style="padding:8px">${past} vergangene Einträge werden ausgeblendet.</p>` : ''}
-    ${me().super ? `<p class="empty" style="padding:8px">Zum Eintragen bitte mit deinem Haus-Zugang anmelden.</p>` : `<button class="fab" data-act="new" data-col="${col}">＋ ${tx(`mod_${col}_add`)}</button>`}`;
+    ${old.length ? `<h2 class="section-title">Abgelaufen <span class="sub">nur für dich sichtbar</span></h2>${old.map((it) => `<article class="card expired"><h3>${esc(it.title)}</h3><div class="meta">eingetragen ${ago(it.at)} · für die anderen nicht mehr sichtbar</div>
+      <div class="actions"><button class="small" data-act="renew" data-col="${col}" data-id="${it.id}">Noch eine Woche zeigen</button><button class="small ghost" data-act="del" data-col="${col}" data-id="${it.id}">Löschen</button></div></article>`).join('')}` : ''}
+    ${me().super ? `<p class="empty" style="padding:8px">Zum Eintragen bitte mit deinem Haus-Zugang anmelden.</p>` : `<button class="fab" data-act="new" data-col="${col}">${ic('plus')} ${tx(`mod_${col}_add`)}</button>`}`;
 }
 
 function ownerActions(col, it) {
@@ -619,24 +736,25 @@ function ownerActions(col, it) {
   const own = it.by === me().id;
   if (!own) { /* Verwaltung: nur Bearbeiten/Löschen */ }
   else if (col === 'things') extra = it.status === 'verliehen'
-    ? `<button class="small secondary" data-act="returned" data-id="${it.id}">↩︎ Ist zurück</button>`
-    : `<button class="small secondary" data-act="lend" data-id="${it.id}">📤 Verliehen</button>`;
+    ? `<button class="small secondary" data-act="returned" data-id="${it.id}">Ist zurück</button>`
+    : `<button class="small secondary" data-act="lend" data-id="${it.id}">Verliehen</button>`;
   else if (col === 'gifts') extra = `<button class="small secondary" data-act="reserve" data-id="${it.id}">${it.status === 'reserviert' ? 'Wieder frei' : 'Reserviert'}</button>`;
   else if (col === 'polls' && !it.closed) extra = `<button class="small secondary" data-act="close-poll" data-id="${it.id}">Beenden</button>`;
-  return `${extra}<button class="small ghost" data-act="edit" data-col="${col}" data-id="${it.id}">✏️ Bearbeiten</button>
-    <button class="small ghost" data-act="del" data-col="${col}" data-id="${it.id}">🗑️ Löschen</button>`;
+  return `${extra}<button class="small ghost" data-act="edit" data-col="${col}" data-id="${it.id}">Bearbeiten</button>
+    <button class="small ghost" data-act="del" data-col="${col}" data-id="${it.id}">Löschen</button>`;
 }
 
-function contactBtn(col, it, label = '💬 Kontakt') {
+function contactBtn(col, it, label = 'Kontakt') {
   if (it.by === me().id) return '';
   return `<button class="small" data-act="contact" data-col="${col}" data-id="${it.id}">${label}</button>`;
 }
 
+const expLeft = (col, it) => { const n = daysLeft(col, it); return n <= 1 ? 'nur noch heute sichtbar' : `noch ${n} Tage sichtbar`; };
 function card(col, it, showModule) {
   const isNew = S.prevSeen && it.by !== me().id && new Date(it.at).getTime() > S.prevSeen;
   const by = `von ${esc(userName(it.by))}`;
   const photo = it.photo ? `<img class="photo" loading="lazy" alt="" src="${esc(imgSrc(it.photo))}">` : '';
-  const modLabel = showModule ? `<span>${MOD[col].ic} ${MOD[col].short} · </span>` : '';
+  const modLabel = showModule ? `<span>${mic(col)} ${MOD[col].short} · </span>` : '';
   const newB = isNew ? ' <span class="badge new">neu</span>' : '';
   const today = isoDay();
   switch (col) {
@@ -646,18 +764,18 @@ function card(col, it, showModule) {
         <span class="badge ${lent ? 'lent' : ''}">${lent ? (it.returnDate ? 'verliehen bis ' + fmtDay(it.returnDate, { day: 'numeric', month: 'short' }) : 'verliehen') : 'verfügbar'}</span></div>
         ${photo}${it.text ? `<p class="text">${esc(it.text)}</p>` : ''}
         <div class="meta">${modLabel}${it.category ? esc(it.category) + ' · ' : ''}${by}${lent && it.lentTo && canEdit(it) ? ` · bei ${esc(it.lentTo)}` : ''}</div>
-        <div class="actions">${contactBtn(col, it, '💬 Ausleihen fragen')}${ownerActions(col, it)}</div></article>`;
+        <div class="actions">${contactBtn(col, it, 'Ausleihen fragen')}${ownerActions(col, it)}</div></article>`;
     }
     case 'skills': case 'requests':
       return `<article class="card"><h3>${esc(it.title)}${newB}</h3>${it.text ? `<p class="text">${esc(it.text)}</p>` : ''}
-        <div class="meta">${modLabel}${by} · ${ago(it.at)}</div>
-        <div class="actions">${contactBtn(col, it, col === 'requests' ? '🙌 Ich kann helfen' : '💬 Kontakt')}${ownerActions(col, it)}</div></article>`;
+        <div class="meta">${modLabel}${by} · ${ago(it.at)}${it.by === me().id && EXPIRE_DAYS[col] ? ` · ${expLeft(col, it)}` : ''}</div>
+        <div class="actions">${contactBtn(col, it, col === 'requests' ? 'Ich kann helfen' : 'Kontakt')}${ownerActions(col, it)}</div></article>`;
     case 'gifts':
-      return `<article class="card"><div class="title-row"><h3>${it.kind === 'essen' ? '🍲 ' : ''}${esc(it.title)}${newB}</h3>
+      return `<article class="card"><div class="title-row"><h3>${esc(it.title)}${newB}</h3>
         ${it.status === 'reserviert' ? '<span class="badge lent">reserviert</span>' : '<span class="badge">zu verschenken</span>'}</div>
         ${photo}${it.text ? `<p class="text">${esc(it.text)}</p>` : ''}
-        <div class="meta">${modLabel}${by} · ${ago(it.at)}</div>
-        <div class="actions">${contactBtn(col, it, '🙋 Hätte ich gern')}${ownerActions(col, it)}</div></article>`;
+        <div class="meta">${modLabel}${by} · ${ago(it.at)}${it.by === me().id ? ` · ${expLeft(col, it)}` : ''}</div>
+        <div class="actions">${contactBtn(col, it, 'Hätte ich gern')}${ownerActions(col, it)}</div></article>`;
     case 'events': {
       const dt = parseDay(it.date);
       return `<article class="card event"><div class="date-chip"><small>${dt.toLocaleDateString('de-DE', { weekday: 'short' })}</small><b>${dt.getDate()}</b><small>${dt.toLocaleDateString('de-DE', { month: 'short' })}</small></div>
@@ -670,9 +788,9 @@ function card(col, it, showModule) {
     case 'away': {
       const weg = it.kind === 'weg';
       const when = weg ? `${fmtDay(it.from)} – ${fmtDay(it.to || it.from)}` : (it.from === today ? 'heute' : fmtDay(it.from));
-      return `<article class="card"><h3>${weg ? '🧳' : '📦'} ${esc(userName(it.by))} ist ${weg ? 'weg' : 'da'}${newB}</h3>
+      return `<article class="card"><h3>${ic(weg ? 'bag' : 'box')} ${esc(userName(it.by))} ist ${weg ? 'weg' : 'da'}${newB}</h3>
         <div class="meta">${when}</div>${it.text ? `<p class="text">${esc(it.text)}</p>` : ''}
-        <div class="actions">${contactBtn(col, it, weg ? '🪴 Ich helfe' : '💬 Kontakt')}${ownerActions(col, it)}</div></article>`;
+        <div class="actions">${contactBtn(col, it, weg ? 'Ich helfe' : 'Kontakt')}${ownerActions(col, it)}</div></article>`;
     }
     case 'defects': {
       const n = (it.affected || []).length;
@@ -681,22 +799,22 @@ function card(col, it, showModule) {
       const days = it.since ? daysBetween(it.since, today) : null;
       return `<article class="card"><div class="title-row"><h3>${esc(it.title)}${newB}</h3>
         <span class="badge ${st === 'behoben' ? '' : st === 'gemeldet' ? 'lent' : 'red'}">${DEFECT_SHORT[st]}</span></div>
-        ${photo}<div class="meta">${it.place ? '📍 ' + esc(it.place) + ' · ' : ''}${days !== null && st !== 'behoben' ? `seit ${days} Tagen` : 'gemeldet ' + ago(it.at)}</div>
+        ${photo}<div class="meta">${it.place ? ic('pin', 'sm') + ' ' + esc(it.place) + ' · ' : ''}${days !== null && st !== 'behoben' ? `seit ${days} Tagen` : 'gemeldet ' + ago(it.at)}</div>
         ${it.text ? `<p class="text">${esc(it.text)}</p>` : ''}
         <div class="meta">${modLabel}${by} · betrifft ${n} ${n === 1 ? 'Haushalt' : 'Haushalte'}</div>
-        <div class="actions">${st !== 'behoben' && !me().super ? `<button class="small ${mineAff ? 'secondary' : ''}" data-act="affect" data-id="${it.id}">${mineAff ? '✓ Betrifft mich' : '✋ Betrifft mich auch'}</button>` : ''}${ownerActions(col, it)}</div></article>`;
+        <div class="actions">${st !== 'behoben' && !me().super ? `<button class="small ${mineAff ? 'secondary' : ''}" data-act="affect" data-id="${it.id}">${mineAff ? '✓ Betrifft mich' : 'Betrifft mich auch'}</button>` : ''}${ownerActions(col, it)}</div></article>`;
     }
     case 'info':
-      return `<article class="card"><h3>📌 ${esc(it.title)}${newB}</h3>${it.text ? `<p class="text">${esc(it.text)}</p>` : ''}
+      return `<article class="card"><h3>${esc(it.title)}${newB}</h3>${it.text ? `<p class="text">${esc(it.text)}</p>` : ''}
         <div class="meta">${modLabel}eingetragen ${by} · zuletzt geändert ${ago(it.up || it.at)}</div><div class="actions">${ownerActions(col, it)}</div></article>`;
     case 'rides':
-      return `<article class="card"><h3>🚲 ${esc(it.title)}${newB}</h3><div class="meta">${fmtDay(it.date)}${it.time ? ', ' + it.time + ' Uhr' : ''} · ${by}</div>
-        ${it.text ? `<p class="text">${esc(it.text)}</p>` : ''}<div class="actions">${contactBtn(col, it, '🛍️ Bring mir was mit')}${ownerActions(col, it)}</div></article>`;
+      return `<article class="card"><h3>${esc(it.title)}${newB}</h3><div class="meta">${fmtDay(it.date)}${it.time ? ', ' + it.time + ' Uhr' : ''} · ${by}</div>
+        ${it.text ? `<p class="text">${esc(it.text)}</p>` : ''}<div class="actions">${contactBtn(col, it, 'Bring mir was mit')}${ownerActions(col, it)}</div></article>`;
     case 'polls': {
       const votes = Object.values(it.votes || {});
       const myVote = (it.votes || {})[me().id];
       const total = votes.length;
-      return `<article class="card"><div class="title-row"><h3>🗳️ ${esc(it.title)}${newB}</h3>${it.closed ? '<span class="badge grey">beendet</span>' : ''}</div>
+      return `<article class="card"><div class="title-row"><h3>${esc(it.title)}${newB}</h3>${it.closed ? '<span class="badge grey">beendet</span>' : ''}</div>
         ${it.text ? `<p class="text">${esc(it.text)}</p>` : ''}
         ${it.options.map((o, i) => {
           const n = votes.filter((v) => v === i).length;
@@ -708,7 +826,7 @@ function card(col, it, showModule) {
         <div class="actions">${ownerActions(col, it)}</div></article>`;
     }
     case 'thanks':
-      return `<article class="card soft"><h3>💛 ${it.to ? 'Danke an ' + esc(it.to) : 'Danke!'}${newB}</h3><p class="text">${esc(it.text)}</p>
+      return `<article class="card soft"><h3>${it.to ? 'Danke an ' + esc(it.to) : 'Danke!'}${newB}</h3><p class="text">${esc(it.text)}</p>
         <div class="meta">${by} · ${ago(it.at)}</div><div class="actions">${ownerActions(col, it)}</div></article>`;
   }
   return '';
@@ -719,21 +837,21 @@ function renderMenu() {
   const extra = MENU_MODS.filter(has);
   app.innerHTML = `
     ${header('Mehr', '')}
-    ${extra.length ? `<div class="card list-menu">${extra.map((m) => `<a href="#m/${m}"><span class="ic">${MOD[m].ic}</span><span>${tx(`mod_${m}_name`)}<br><small style="font-weight:400;color:var(--ink-soft)">${tx(`mod_${m}_desc`)}</small></span></a>`).join('')}</div>` : ''}
+    ${extra.length ? `<div class="card list-menu">${extra.map((m) => `<a href="#m/${m}"><span class="ic">${mic(m)}</span><span>${tx(`mod_${m}_name`)}<br><small style="font-weight:400;color:var(--ink-soft)">${tx(`mod_${m}_desc`)}</small></span></a>`).join('')}</div>` : ''}
     <div class="card list-menu">
-      <a href="#profil"><span class="ic">👤</span>Mein Profil</a>
-      <a href="#was"><span class="ic">🏡</span>Was ist das hier?</a>
-      <a href="#wie"><span class="ic">❓</span>Wie funktioniert das?</a>
-      <a href="#feedback"><span class="ic">✉️</span>Fehler melden & Feedback</a>
-      ${me().admin ? '<a href="#verwaltung"><span class="ic">🔑</span>Verwaltung</a>' : ''}
-      <button data-act="logout"><span class="ic">🚪</span>Abmelden</button>
+      <a href="#profil"><span class="ic">${ic('user')}</span>Mein Profil</a>
+      <a href="#was"><span class="ic">${ic('home')}</span>Was ist das hier?</a>
+      <a href="#wie"><span class="ic">${ic('help')}</span>Wie funktioniert das?</a>
+      <a href="#feedback"><span class="ic">${ic('mail')}</span>Fehler melden & Feedback</a>
+      ${me().admin ? `<a href="#verwaltung"><span class="ic">${ic('key')}</span>Verwaltung</a>` : ''}
+      <button data-act="logout"><span class="ic">${ic('logout')}</span>Abmelden</button>
     </div>`;
 }
 
 function installHelp() {
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  if (matchMedia('(display-mode: standalone)').matches) return '<p class="text">✓ Allmende ist bereits als App installiert.</p>';
-  return `${S.installEvt ? '<div class="actions"><button data-act="install">📱 Jetzt installieren</button></div>' : ''}
+  if (matchMedia('(display-mode: standalone)').matches) return '<p class="text">Allmende ist bereits als App installiert.</p>';
+  return `${S.installEvt ? `<div class="actions"><button data-act="install">${ic('phone')} Jetzt installieren</button></div>` : ''}
     <p class="text">${ios ? 'iPhone/iPad: Unten auf das Teilen-Symbol (Quadrat mit Pfeil) tippen → „Zum Home-Bildschirm“.' : 'Android: Im Browser-Menü (⋮) auf „App installieren“ oder „Zum Startbildschirm hinzufügen“ tippen.'}</p>`;
 }
 
@@ -784,7 +902,7 @@ function renderWhat() {
     <div class="card prose">${tx('was_safety', { block: 1, list: 'safe-list' })}${tx('was_tech', { block: 1, cls: 'hint' })}</div>
     <h2 class="section-title">${tx('was_who_title')}</h2>
     <div class="card prose">${tx('was_who', { block: 1 })}
-      ${S.st ? '<div class="actions"><a class="btn" href="#feedback">✉️ Feedback senden</a></div>' : ''}
+      ${S.st ? `<div class="actions"><a class="btn" href="#feedback">${ic('mail')} Feedback senden</a></div>` : ''}
     </div>
     ${!S.st ? '<div class="small-links"><a class="link" href="#start">← Zur Anmeldung</a><a class="link" href="#wie">Wie funktioniert das?</a></div>' : ''}`;
 }
@@ -795,7 +913,7 @@ function renderHow() {
     ${header(tx('wie_title'), '')}
     <div class="card prose">${tx('wie_steps', { block: 1 })}</div>
     <h2 class="section-title">${tx('wie_areas_title')}</h2>
-    <div class="card list-menu">${list.map((m) => `<div style="display:flex;gap:14px;padding:10px 4px;border-bottom:1px solid var(--line)"><span class="ic" style="font-size:1.4rem">${MOD[m].ic}</span><span><b>${tx(`mod_${m}_name`)}</b><br><small style="color:var(--ink-soft)">${tx(`mod_${m}_desc`)}</small></span></div>`).join('')}</div>
+    <div class="card list-menu">${list.map((m) => `<div style="display:flex;gap:14px;padding:10px 4px;border-bottom:1px solid var(--line)"><span class="ic" style="font-size:1.4rem">${mic(m)}</span><span><b>${tx(`mod_${m}_name`)}</b><br><small style="color:var(--ink-soft)">${tx(`mod_${m}_desc`)}</small></span></div>`).join('')}</div>
     ${!S.st ? '<div class="small-links"><a class="link" href="#start">← Zur Anmeldung</a><a class="link" href="#was">Was ist das hier?</a></div>' : ''}`;
 }
 
@@ -820,7 +938,7 @@ async function renderAdmin() {
     let houses = [];
     try { houses = await call('GET', '/admin/houses'); } catch (e) { return handleErr(e); }
     app.innerHTML = `${header('Gesamtverwaltung', 'Alle Häuser')}
-      ${houses.map((h) => `<div class="card"><div class="title-row"><h3>🏠 ${esc(h.name)}</h3><button class="small" data-act="pick-house" data-slug="${esc(h.slug)}">Verwalten</button></div><div class="meta">Kennung: ${esc(h.slug)} · seit ${ago(h.at)}</div></div>`).join('') || '<div class="empty">Noch kein Haus angelegt.</div>'}
+      ${houses.map((h) => `<div class="card"><div class="title-row"><h3>${ic('home')} ${esc(h.name)}</h3><button class="small" data-act="pick-house" data-slug="${esc(h.slug)}">Verwalten</button></div><div class="meta">Kennung: ${esc(h.slug)} · seit ${ago(h.at)}</div></div>`).join('') || '<div class="empty">Noch kein Haus angelegt.</div>'}
       <div class="card"><form data-form="new-house"><h2>Neues Haus anlegen</h2>
         <label for="h-n">Name</label><input id="h-n" name="name" type="text" required placeholder="z. B. Brandvorwerkstraße 59">
         <label for="h-p">Hauspasswort</label><input id="h-p" name="housePassword" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" required minlength="6" autocomplete="off">
@@ -837,27 +955,27 @@ async function renderAdmin() {
   app.innerHTML = `
     ${header('Verwaltung', esc(h.name))}
     ${sup ? '<div class="actions" style="margin-bottom:12px"><button class="secondary" data-act="pick-house" data-slug="">← Alle Häuser</button></div>' : ''}
-    <div class="card"><h2>📨 Einladen</h2>
+    <div class="card"><h2>${ic('mail')} Einladen</h2>
       <p class="text">Diesen Link zusammen mit dem Hauspasswort in die Hausgruppe schicken:</p>
       <div class="share-box">${esc(link)}</div>
       <div class="actions"><button class="small" data-act="copy" data-text="${esc(link)}">Link kopieren</button>
-      <button class="small secondary" data-act="copy" data-text="${esc(`Hallo zusammen! 🏡 Für unser Haus gibt es jetzt die Allmende – eine kleine App, um Werkzeug, Hilfe und Termine zu teilen. Kostenlos, ohne Werbung, ohne Datensammeln.\n\nLink: ${link}\nHauspasswort: (bitte einsetzen)\n\nEinfach öffnen, „Ich bin neu hier“ wählen und loslegen.`)}">Einladungstext kopieren</button></div>
+      <button class="small secondary" data-act="copy" data-text="${esc(`Hallo zusammen! Für unser Haus gibt es jetzt die Allmende – eine kleine App, um Werkzeug, Hilfe und Termine zu teilen. Kostenlos, ohne Werbung, ohne Datensammeln.\n\nLink: ${link}\nHauspasswort: (bitte einsetzen)\n\nEinfach öffnen, „Ich bin neu hier“ wählen und loslegen.`)}">Einladungstext kopieren</button></div>
     </div>
-    <div class="card"><form data-form="house-settings"><h2>⚙️ Haus-Einstellungen</h2>
+    <div class="card"><form data-form="house-settings"><h2>${ic('gear')} Haus-Einstellungen</h2>
       <label for="hs-n">Name des Hauses</label><input id="hs-n" name="name" type="text" value="${esc(h.name)}">
       <label for="hs-p">Neues Hauspasswort <span class="opt">(leer = bleibt gleich)</span></label><input id="hs-p" name="housePassword" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" minlength="6" autocomplete="off">
       <p class="hint">Wer schon einen Zugang hat, bleibt angemeldet. Das Hauspasswort braucht man nur zum Registrieren.</p>
       <label>Bereiche in diesem Haus</label>
-      ${ALL_MODULES.map((m) => `<label class="check"><input type="checkbox" name="mod-${m}" ${h.modules.includes(m) ? 'checked' : ''}> ${MOD[m].ic} ${MOD[m].name}</label>`).join('')}
+      ${ALL_MODULES.map((m) => `<label class="check"><input type="checkbox" name="mod-${m}" ${h.modules.includes(m) ? 'checked' : ''}> ${mic(m)} ${MOD[m].name}</label>`).join('')}
       <div class="sheet-actions"><button>Speichern</button></div></form></div>
-    <div class="card"><h2>👥 Personen (${S.st.users.length})</h2>
+    <div class="card"><h2>${ic('users')} Personen (${S.st.users.length})</h2>
       ${S.st.users.map((u) => `<div style="padding:10px 0;border-bottom:1px solid var(--line)">
         <b>${esc(u.name)}</b> ${u.admin ? '<span class="badge">Verwaltung</span>' : ''}<div class="meta">dabei seit ${ago(u.at)}${u.contact ? ' · ' + esc(u.contact) : ''}</div>
         <div class="actions"><button class="small secondary" data-act="reset-pw" data-id="${u.id}" data-name="${esc(u.name)}">Passwort zurücksetzen</button>
         ${sup ? `<button class="small secondary" data-act="toggle-admin" data-id="${u.id}" data-admin="${u.admin ? '0' : '1'}">${u.admin ? 'Verwaltung entziehen' : 'Zur Verwaltung machen'}</button>` : ''}
         ${u.id !== me().id ? `<button class="small danger" data-act="remove-user" data-id="${u.id}" data-name="${esc(u.name)}">Entfernen</button>` : ''}</div></div>`).join('') || '<p class="text">Noch niemand registriert.</p>'}
     </div>
-    <div class="card"><h2>✉️ Feedback (${feedback.length})</h2>
+    <div class="card"><h2>${ic('mail')} Feedback (${feedback.length})</h2>
       ${feedback.slice().reverse().map((f) => `<div style="padding:10px 0;border-bottom:1px solid var(--line)">
         <div class="meta">${esc(f.by)} · ${ago(f.at)}${f.page ? ' · Seite: ' + esc(f.page) : ''}</div><p class="text">${esc(f.text)}</p>
         ${f.screenshot ? `<img class="photo" style="width:100%;border-radius:12px;margin-top:8px" alt="Screenshot" loading="lazy" src="${esc(imgSrc(f.screenshot))}">` : ''}
@@ -910,7 +1028,7 @@ function openForm(col, item, preset = {}) {
       default: return lab + `<input id="${id}" name="${f.k}" type="text" value="${esc(val)}" ${f.req ? 'required' : ''} placeholder="${esc(f.ph || '')}" maxlength="${f.k === 'contact' ? 200 : 120}">` + hint;
     }
   }).join('');
-  openSheet(`${sheetHead(item ? 'Bearbeiten' : `${MOD[col].ic} ${esc(txt(`mod_${col}_add`))}`)}
+  openSheet(`${sheetHead(item ? 'Bearbeiten' : esc(txt(`mod_${col}_add`)))}
     <form data-form="item" data-col="${col}" data-id="${item ? item.id : ''}">${fields}
       <div class="err" hidden></div>
       <div class="sheet-actions"><button type="button" class="secondary" data-act="close">Abbrechen</button><button>Speichern</button></div>
@@ -942,7 +1060,7 @@ function openTextEditor(k) {
   const layer = isSuper ? TEXT_LAYERS.global : TEXT_LAYERS.house;
   const changed = k in (layer || {});
   const multi = /\n/.test(D[k] || '') || (D[k] || '').length > 90;
-  openSheet(`${sheetHead('✏️ Text bearbeiten')}
+  openSheet(`${sheetHead('Text bearbeiten')}
     <form data-form="text" data-key="${k}">
       <p class="hint">Gilt ${isSuper ? 'für <b>alle Häuser</b> (Gesamtverwaltung)' : 'nur für <b>dieses Haus</b>'}.${changed ? ' Dieser Text wurde schon angepasst.' : ''}</p>
       ${multi ? `<textarea name="value" style="min-height:260px">${esc(raw(k))}</textarea>` : `<input type="text" name="value" value="${esc(raw(k))}">`}
@@ -971,7 +1089,7 @@ const actions = {
   install: async () => { if (!S.installEvt) return; S.installEvt.prompt(); await S.installEvt.userChoice.catch(() => {}); S.installEvt = null; render(); },
   logout: () => { const wasSuper = session.isSuper; session.clear(); if (wasSuper) session.slug = ''; S.st = null; S.loginHouse = null; go('start'); },
   font: (d) => { document.documentElement.classList.toggle('big', d.big === '1'); session.pref('big', d.big === '1' ? '1' : null); renderProfile(); },
-  new: (d) => openForm(d.col, null, d.title ? { title: d.title } : {}),
+  new: (d) => openForm(d.col, null, d.title ? { title: d.title } : d.date ? { date: d.date } : {}),
   edit: (d) => { const it = findItem(d.col, d.id); if (it) openForm(d.col, it); },
   del: (d) => {
     const it = findItem(d.col, d.id);
@@ -983,16 +1101,16 @@ const actions = {
     const it = findItem(d.col, d.id); if (!it) return;
     const u = S.users.get(it.by);
     const c = it.contact || u?.contact;
-    openSheet(`${sheetHead('💬 Kontakt')}<p class="text">${esc(it.title || '')}</p>
+    openSheet(`${sheetHead('Kontakt')}<p class="text">${esc(it.title || '')}</p>
       <p class="text">Von <b>${esc(userName(it.by))}</b>:</p>
       <div class="contact-big">${c ? esc(c) : 'Kein Kontakthinweis eingetragen.\nFrag am besten in der Hausgruppe nach ' + esc(userName(it.by)) + '.'}</div>
-      <p class="hint">Den Rest klärt ihr direkt miteinander. 🙂</p>
+      <p class="hint">Den Rest klärt ihr direkt miteinander.</p>
       <div class="sheet-actions"><button data-act="close">Alles klar</button></div>`);
   },
   lend: (d) => {
     const it = findItem('things', d.id);
     const def = new Date(); def.setDate(def.getDate() + 7);
-    openSheet(`${sheetHead('📤 Verliehen')}<form data-form="lend" data-id="${d.id}"><p class="text">${esc(it.title)}</p>
+    openSheet(`${sheetHead('Verliehen')}<form data-form="lend" data-id="${d.id}"><p class="text">${esc(it.title)}</p>
       <label for="l-to">An wen? <span class="opt">(freiwillig, sehen nur du und die Verwaltung)</span></label><input id="l-to" name="lentTo" type="text" maxlength="80" list="userlist">
       <datalist id="userlist">${S.st.users.filter((u) => u.id !== me().id).map((u) => `<option value="${esc(u.name)}">`).join('')}</datalist>
       <label for="l-d">Zurück bis</label><input id="l-d" name="returnDate" type="date" value="${isoDay(def)}">
@@ -1005,6 +1123,9 @@ const actions = {
     const it = findItem('polls', d.id); const opt = Number(d.opt);
     try { await call('POST', `/items/polls/${d.id}/vote`, { option: it.votes?.[me().id] === opt ? null : opt }); await reload(); } catch (e) { handleErr(e); }
   },
+  renew: async (d) => { const it = findItem(d.col, d.id); if (!it) return; try { await call('PUT', `/items/${d.col}/${d.id}`, { title: it.title }); toast('Wird wieder eine Woche angezeigt.'); await reload(); } catch (e) { handleErr(e); } },
+  'cal-nav': (d) => { const [y, m] = calMonth(); const t = d.dir === '0' ? new Date() : new Date(y, m + Number(d.dir), 1); S.calMonth = [t.getFullYear(), t.getMonth()]; S.calDay = d.dir === '0' ? isoDay() : null; redrawCal(); },
+  'cal-day': (d) => { S.calDay = S.calDay === d.day ? null : d.day; redrawCal(); },
   'close-poll': async (d) => { try { await call('PUT', `/items/polls/${d.id}`, { closed: true }); toast('Umfrage beendet'); await reload(); } catch (e) { handleErr(e); } },
   'delete-me': () => openSheet(`${sheetHead('Zugang löschen?')}<p class="text">Dein Zugang und <b>alle deine Einträge</b> werden gelöscht. Das lässt sich nicht rückgängig machen.</p>
     <div class="sheet-actions"><button class="secondary" data-act="close">Abbrechen</button><button class="danger" data-act="delete-me-yes">Endgültig löschen</button></div>`),
@@ -1061,7 +1182,7 @@ const forms = {
     const r = await call('POST', '/join', { slug, housePassword: fd.get('housePassword'), name: fd.get('name'), password: fd.get('password'), contact: fd.get('contact') });
     session.pref('seen:' + slug, String(Date.now()));
     await afterLogin(r.token, slug);
-    toast('Willkommen in der Allmende! 🎉');
+    toast('Willkommen in der Allmende!');
   },
   login: async (fd) => { const slug = S.loginHouse.slug; const r = await call('POST', '/login', { slug, name: fd.get('name'), password: fd.get('password') }); await afterLogin(r.token, slug); },
   'admin-login': async (fd) => { const r = await call('POST', '/admin/login', { key: fd.get('key') }); await afterLogin(r.token, '', true); },
