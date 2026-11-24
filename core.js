@@ -88,6 +88,13 @@ async function verifyPassword(password, rec) {
   return safeEqual(hash, rec.hash);
 }
 
+// Leerzeichen am Anfang/Ende (z. B. von der Handy-Tastatur) sollen nicht zum Fehler führen
+async function verifyLoose(password, rec) {
+  const pw = String(password || '');
+  if (await verifyPassword(pw, rec)) return true;
+  return pw.trim() !== pw && verifyPassword(pw.trim(), rec);
+}
+
 async function hmac(secret, data) {
   const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   return b64url(new Uint8Array(await crypto.subtle.sign('HMAC', key, enc.encode(data))));
@@ -221,9 +228,9 @@ export function createCore(store, config) {
       const rk = 'join:' + ip + ':' + slug;
       checkRate(rk);
       const house = await getHouse(slug);
-      if (!(await verifyPassword(String(body.housePassword || ''), house.pass))) { noteFail(rk); fail(403, 'Das Hauspasswort stimmt nicht.'); }
+      if (!(await verifyLoose(body.housePassword, house.pass))) { noteFail(rk); fail(403, 'Das Hauspasswort stimmt nicht.'); }
       const name = str(body.name, 40);
-      const password = String(body.password || '');
+      const password = String(body.password || '').trim();
       if (name.length < 2) fail(400, 'Der Name braucht mindestens 2 Zeichen.');
       if (password.length < 6) fail(400, 'Das Passwort braucht mindestens 6 Zeichen.');
       const pass = await hashPassword(password);
@@ -244,7 +251,7 @@ export function createCore(store, config) {
       const name = str(body.name, 40).toLowerCase();
       const users = await readData(P.users(slug), () => ({ users: [] }));
       const user = users.users.find((u) => u.name.toLowerCase() === name);
-      if (!user || !(await verifyPassword(String(body.password || ''), user.pass))) { noteFail(rk); fail(403, 'Name oder Passwort stimmen nicht.'); }
+      if (!user || !(await verifyLoose(body.password, user.pass))) { noteFail(rk); fail(403, 'Name oder Passwort stimmen nicht.'); }
       return { token: await makeToken({ h: slug, u: user.id, r: 'user', v: user.tv || 0 }) };
     },
 
@@ -371,9 +378,9 @@ export function createCore(store, config) {
       if (a.isSuper) fail(400, 'Die Gesamtverwaltung hat kein Profil.');
       let newPass = null;
       if (body.password !== undefined) {
-        if (!(await verifyPassword(String(body.oldPassword || ''), a.user.pass))) fail(403, 'Das bisherige Passwort stimmt nicht.');
-        if (String(body.password).length < 6) fail(400, 'Das neue Passwort braucht mindestens 6 Zeichen.');
-        newPass = await hashPassword(String(body.password));
+        if (!(await verifyLoose(body.oldPassword, a.user.pass))) fail(403, 'Das bisherige Passwort stimmt nicht.');
+        if (String(body.password).trim().length < 6) fail(400, 'Das neue Passwort braucht mindestens 6 Zeichen.');
+        newPass = await hashPassword(String(body.password).trim());
       }
       const u = await update(P.users(a.slug), () => ({ users: [] }), (d) => {
         const u = d.users.find((x) => x.id === a.user.id);
@@ -488,7 +495,7 @@ export function createCore(store, config) {
     'POST /admin/users/:id/reset': async ({ token, query, params, body }) => {
       const a = await auth(token, query, { needAdmin: true });
       const slug = needSlug(a);
-      const pw = String(body.password || '');
+      const pw = String(body.password || '').trim();
       if (pw.length < 6) fail(400, 'Das neue Passwort braucht mindestens 6 Zeichen.');
       const pass = await hashPassword(pw);
       await update(P.users(slug), () => ({ users: [] }), (d) => {
@@ -520,8 +527,8 @@ export function createCore(store, config) {
       const slug = needSlug(a);
       let pass = null;
       if (body.housePassword) {
-        if (String(body.housePassword).length < 6) fail(400, 'Das Hauspasswort braucht mindestens 6 Zeichen.');
-        pass = await hashPassword(String(body.housePassword));
+        if (String(body.housePassword).trim().length < 6) fail(400, 'Das Hauspasswort braucht mindestens 6 Zeichen.');
+        pass = await hashPassword(String(body.housePassword).trim());
       }
       return update(P.house(slug), () => null, (h) => {
         if (!h) fail(404, 'Dieses Haus gibt es nicht.');
@@ -540,9 +547,9 @@ export function createCore(store, config) {
       const name = str(body.name, 80);
       const slug = slugify(body.slug || name);
       if (!slug) fail(400, 'Bitte einen Namen angeben.');
-      if (String(body.housePassword || '').length < 6) fail(400, 'Das Hauspasswort braucht mindestens 6 Zeichen.');
+      if (String(body.housePassword || '').trim().length < 6) fail(400, 'Das Hauspasswort braucht mindestens 6 Zeichen.');
       if (await store.read(P.house(slug))) fail(409, 'Ein Haus mit dieser Kennung gibt es schon.');
-      const pass = await hashPassword(String(body.housePassword));
+      const pass = await hashPassword(String(body.housePassword).trim());
       const house = { slug, name, pass, modules: DEFAULT_MODULES.slice(), at: new Date().toISOString() };
       await store.write(P.house(slug), house);
       await update(P.index, () => ({ houses: [] }), (d) => { d.houses.push({ slug, name, at: house.at }); });

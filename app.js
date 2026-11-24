@@ -452,7 +452,7 @@ async function renderLogin() {
       ${!house ? `
         <form data-form="house">
           <label for="f-slug">Haus-Kennung</label>
-          <input id="f-slug" name="slug" type="text" autocomplete="off" required placeholder="z. B. brandvorwerkstrasse-59" value="${esc(S.loginHouse?.missing ? S.loginHouse.slug : '')}">
+          <input id="f-slug" name="slug" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" required placeholder="z. B. brandvorwerkstrasse-59" value="${esc(S.loginHouse?.missing ? S.loginHouse.slug : '')}">
           <p class="hint">Steht am Ende des Links, den du bekommen hast (nach „?haus=“).</p>
           ${S.loginHouse?.missing ? '<div class="err">Dieses Haus wurde nicht gefunden. Bitte die Kennung prüfen.</div>' : ''}
           <div class="sheet-actions"><button>Weiter</button></div>
@@ -464,17 +464,17 @@ async function renderLogin() {
         <form data-form="${join ? 'join' : 'login'}">
           ${join ? `
             <label for="f-hp">Hauspasswort</label>
-            <input id="f-hp" name="housePassword" type="password" required autocomplete="off">
+            <input id="f-hp" name="housePassword" type="password" autocapitalize="none" autocorrect="off" spellcheck="false" required autocomplete="off">
             <p class="hint">Steht in der Nachricht, mit der du den Link bekommen hast.</p>` : ''}
           <label for="f-name">Dein Name im Haus</label>
           <input id="f-name" name="name" type="text" required minlength="2" maxlength="40" autocomplete="username" placeholder="z. B. Eric, Frau Schulz, Wohnung 4">
           ${join ? '<p class="hint">Muss nicht dein echter Name sein – Hauptsache, die anderen wissen, wer du bist.</p>' : ''}
           <label for="f-pw">${join ? 'Wähle ein Passwort' : 'Passwort'}</label>
-          <input id="f-pw" name="password" type="password" required minlength="6" autocomplete="${join ? 'new-password' : 'current-password'}">
+          <input id="f-pw" name="password" type="password" autocapitalize="none" autocorrect="off" spellcheck="false" required minlength="6" autocomplete="${join ? 'new-password' : 'current-password'}">
           ${join ? `
             <p class="hint">Mindestens 6 Zeichen. Am besten aufschreiben – es gibt keine E-Mail zum Zurücksetzen.</p>
             <label for="f-pw2">Passwort wiederholen</label>
-            <input id="f-pw2" name="password2" type="password" required minlength="6" autocomplete="new-password">
+            <input id="f-pw2" name="password2" type="password" autocapitalize="none" autocorrect="off" spellcheck="false" required minlength="6" autocomplete="new-password">
             <label for="f-c">Wie erreicht man dich? <span class="opt">(freiwillig)</span></label>
             <input id="f-c" name="contact" type="text" maxlength="200" placeholder="z. B. 3. OG links – einfach klingeln">
             <p class="hint">Wird bei deinen Einträgen angezeigt. Keine Telefonnummer nötig.</p>` : ''}
@@ -494,7 +494,7 @@ function renderAdminLogin() {
   app.innerHTML = `${header('Verwaltung', 'Nur für die Person, die die App betreibt.')}
     <div class="card"><form data-form="admin-login">
       <label for="f-key">Admin-Schlüssel</label>
-      <input id="f-key" name="key" type="password" required autocomplete="current-password">
+      <input id="f-key" name="key" type="password" autocapitalize="none" autocorrect="off" spellcheck="false" required autocomplete="current-password">
       ${DEMO ? '<p class="hint">Demo: <b>demo-admin-schluessel</b></p>' : ''}
       <div class="sheet-actions"><a class="btn secondary" href="#start">Zurück</a><button>Anmelden</button></div>
     </form></div>`;
@@ -768,8 +768,8 @@ function renderProfile() {
       <button class="${document.documentElement.classList.contains('big') ? '' : 'secondary'}" data-act="font" data-big="1" style="font-size:1.15rem">Größer</button></div></div>
     <div class="card"><h2>Als App aufs Handy</h2>${installHelp()}</div>
     <div class="card"><form data-form="password"><h2>Passwort ändern</h2>
-      <label for="p-o">Bisheriges Passwort</label><input id="p-o" name="oldPassword" type="password" required autocomplete="current-password">
-      <label for="p-n">Neues Passwort</label><input id="p-n" name="password" type="password" required minlength="6" autocomplete="new-password">
+      <label for="p-o">Bisheriges Passwort</label><input id="p-o" name="oldPassword" type="password" autocapitalize="none" autocorrect="off" spellcheck="false" required autocomplete="current-password">
+      <label for="p-n">Neues Passwort</label><input id="p-n" name="password" type="password" autocapitalize="none" autocorrect="off" spellcheck="false" required minlength="6" autocomplete="new-password">
       <div class="sheet-actions"><button class="secondary">Passwort ändern</button></div>
     </form></div>
     <div class="card"><h2>Zugang löschen</h2><p class="text">Löscht deinen Zugang und alle deine Einträge. Das lässt sich nicht rückgängig machen.</p>
@@ -823,7 +823,7 @@ async function renderAdmin() {
       ${houses.map((h) => `<div class="card"><div class="title-row"><h3>🏠 ${esc(h.name)}</h3><button class="small" data-act="pick-house" data-slug="${esc(h.slug)}">Verwalten</button></div><div class="meta">Kennung: ${esc(h.slug)} · seit ${ago(h.at)}</div></div>`).join('') || '<div class="empty">Noch kein Haus angelegt.</div>'}
       <div class="card"><form data-form="new-house"><h2>Neues Haus anlegen</h2>
         <label for="h-n">Name</label><input id="h-n" name="name" type="text" required placeholder="z. B. Brandvorwerkstraße 59">
-        <label for="h-p">Hauspasswort</label><input id="h-p" name="housePassword" type="text" required minlength="6" autocomplete="off">
+        <label for="h-p">Hauspasswort</label><input id="h-p" name="housePassword" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" required minlength="6" autocomplete="off">
         <p class="hint">Das Passwort schickst du zusammen mit dem Link in die Hausgruppe. Am besten etwas Einfaches, aber nicht Erratbares.</p>
         <div class="sheet-actions"><button>Haus anlegen</button></div></form></div>
       <div class="actions"><button class="secondary" data-act="logout">Abmelden</button></div>`;
@@ -845,7 +845,7 @@ async function renderAdmin() {
     </div>
     <div class="card"><form data-form="house-settings"><h2>⚙️ Haus-Einstellungen</h2>
       <label for="hs-n">Name des Hauses</label><input id="hs-n" name="name" type="text" value="${esc(h.name)}">
-      <label for="hs-p">Neues Hauspasswort <span class="opt">(leer = bleibt gleich)</span></label><input id="hs-p" name="housePassword" type="text" minlength="6" autocomplete="off">
+      <label for="hs-p">Neues Hauspasswort <span class="opt">(leer = bleibt gleich)</span></label><input id="hs-p" name="housePassword" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" minlength="6" autocomplete="off">
       <p class="hint">Wer schon einen Zugang hat, bleibt angemeldet. Das Hauspasswort braucht man nur zum Registrieren.</p>
       <label>Bereiche in diesem Haus</label>
       ${ALL_MODULES.map((m) => `<label class="check"><input type="checkbox" name="mod-${m}" ${h.modules.includes(m) ? 'checked' : ''}> ${MOD[m].ic} ${MOD[m].name}</label>`).join('')}

@@ -32,7 +32,7 @@ r = await call('POST', '/join', { body: { slug, housePassword: 'nein', name: 'Er
 r = await call('POST', '/join', { body: { slug, housePassword: 'haus123', name: 'Eric', password: 'geheim1', contact: '3. OG' } }); assert.equal(r.status, 200);
 const eric = r.body.token;
 r = await call('POST', '/join', { body: { slug, housePassword: 'haus123', name: 'eric', password: 'geheim1' } }); assert.equal(r.status, 409);
-r = await call('POST', '/join', { body: { slug, housePassword: 'haus123', name: 'Frau Schulz', password: 'blumen1' } });
+r = await call('POST', '/join', { body: { slug, housePassword: 'haus123 ', name: 'Frau Schulz', password: 'blumen1' } });
 const schulz = r.body.token;
 
 r = await call('POST', '/items/things', { token: eric, body: { title: 'Bohrmaschine', text: 'mit Steinbohrern', status: 'frei', evil: 'x' } });
