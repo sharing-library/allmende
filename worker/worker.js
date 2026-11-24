@@ -278,7 +278,9 @@ function createCore(store, config) {
       const data = {};
       mods.forEach((c, i) => { data[c] = cols[i].items; });
       // „verliehen an“ sehen nur Besitzer*in und Verwaltung
-      if (data.things && !a.isAdmin) data.things = data.things.map((t) => (t.by === a.user.id || !t.lentTo ? t : { ...t, lentTo: '' }));
+      // „verliehen an“ sehen nur Verleihende, die Verwaltung und die Person, an die verliehen wurde
+      const myName = String(a.user?.name || '').trim().toLocaleLowerCase('de');
+      if (data.things && !a.isAdmin) data.things = data.things.map((t) => (t.by === a.user.id || !t.lentTo || t.lentTo.trim().toLocaleLowerCase('de') === myName ? t : { ...t, lentTo: '' }));
       return {
         house: { slug, name: house.name, modules: mods },
         me: a.user ? publicUser(a.user) : { id: '__super', name: 'Gesamtverwaltung', contact: '', admin: true, super: true },

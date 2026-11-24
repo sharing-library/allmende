@@ -413,10 +413,10 @@ function renderNav() {
   }).join('')}</div>`;
 }
 
-// Logo im Blocksatz: beide Wörter exakt gleich breit
+// Logo (Variante E): leichte Grotesk im Blocksatz, beide Wörter exakt gleich breit
 function logo() {
   return `<svg class="logo" viewBox="0 0 132 46" width="132" height="46" role="img" aria-label="allmende – teilgut">
-    <text x="0" y="25" textLength="132" lengthAdjust="spacingAndGlyphs" class="l1">allmende</text>
+    <text x="0" y="25" textLength="132" lengthAdjust="spacing" class="l1">allmende</text>
     <text x="1" y="42" textLength="130" lengthAdjust="spacing" class="l2">teilgut</text></svg>`;
 }
 function header(title, lead) {
@@ -567,12 +567,6 @@ function renderStart() {
     notices.push(`<div class="card notice"><h3>${tx('welcome_title')}</h3><p class="text">${tx('welcome_text')}</p>
       <div class="actions"><a class="btn" href="#was">Was ist das hier?</a><button class="secondary" data-act="dismiss-welcome">Schon klar</button></div></div>`);
   }
-  for (const t of d.things || []) {
-    if (t.by !== mine.id || t.status !== 'verliehen' || !t.returnDate) continue;
-    const diff = daysBetween(today, t.returnDate);
-    if (diff < 0) notices.push(`<div class="card notice red"><h3>${ic('clock')} ${esc(t.title)}</h3><p class="text">Sollte seit ${fmtDay(t.returnDate)} zurück sein${t.lentTo ? ` (verliehen an ${esc(t.lentTo)})` : ''}.</p><div class="actions"><button class="small" data-act="returned" data-id="${t.id}">Ist zurück</button></div></div>`);
-    else if (diff <= 1) notices.push(`<div class="card notice"><h3>${ic('clock')} ${esc(t.title)}</h3><p class="text">Kommt ${diff === 0 ? 'heute' : 'morgen'} zurück${t.lentTo ? ` von ${esc(t.lentTo)}` : ''}.</p></div>`);
-  }
   if (S.installEvt && !session.pref('install-dismissed')) {
     notices.push(`<div class="card notice"><h3>${ic('phone')} Als App aufs Handy</h3><p class="text">Allmende lässt sich wie eine App auf dem Startbildschirm ablegen.</p><div class="actions"><button data-act="install">Installieren</button><button class="secondary" data-act="dismiss-install">Später</button></div></div>`);
   }
@@ -596,12 +590,42 @@ function renderStart() {
     <div id="search-results"></div>
     <div id="start-body">
       ${notices.join('')}
+      ${lentBox()}
       ${todayBits.length ? `<h2 class="section-title">Heute im Haus</h2><div class="card today">${todayBits.map((b) => `<p>${b}</p>`).join('')}</div>` : ''}
       <h2 class="hero-q">${tx('start_q')}</h2>
       ${inventory()}
       ${fresh.length ? `<h2 class="section-title">Neu seit deinem letzten Besuch</h2>${fresh.map(({ m, it }) => miniCard(m, it)).join('')}` : ''}
       ${has('events') ? `<h2 class="section-title">${tx('start_cal')}</h2>${monthCal(true)}` : ''}
     </div>`;
+}
+
+// Verliehen & ausgeliehen – nur für die beteiligten Personen sichtbar
+const sameName = (a, b) => !!a && !!b && a.trim().toLocaleLowerCase('de') === b.trim().toLocaleLowerCase('de');
+function dueInfo(t) {
+  if (!t.returnDate) return { txt: 'ohne Rückgabedatum', cls: '' };
+  const diff = daysBetween(isoDay(), t.returnDate);
+  if (diff < 0) return { txt: `sollte seit ${fmtDay(t.returnDate)} zurück sein`, cls: 'red', badge: diff === -1 ? 'seit gestern fällig' : `${-diff} Tage überfällig` };
+  if (diff === 0) return { txt: 'kommt heute zurück', cls: 'lent', badge: 'heute' };
+  if (diff === 1) return { txt: 'kommt morgen zurück', cls: 'lent', badge: 'morgen' };
+  return { txt: `zurück bis ${fmtDay(t.returnDate)}`, cls: '' };
+}
+function lentBox() {
+  const mine = me(); if (mine.super) return '';
+  const things = S.st.data.things || [];
+  const out = things.filter((t) => t.by === mine.id && t.status === 'verliehen').sort((a, b) => (a.returnDate || '9').localeCompare(b.returnDate || '9'));
+  const borrowed = things.filter((t) => t.by !== mine.id && t.status === 'verliehen' && sameName(t.lentTo, mine.name));
+  if (!out.length && !borrowed.length) return '';
+  const row = (t, own) => {
+    const due = dueInfo(t);
+    return `<div class="lent-row${due.cls === 'red' ? ' late' : ''}">
+      <div class="lent-txt"><b>${esc(t.title)}</b>${due.badge ? ` <span class="badge ${due.cls}">${due.badge}</span>` : ''}
+        <div class="meta">${own ? (t.lentTo ? `verliehen an <b>${esc(t.lentTo)}</b> · ` : 'verliehen · ') : `von <b>${esc(userName(t.by))}</b> · `}${due.txt}</div></div>
+      <div class="actions">${own
+        ? `<button class="small" data-act="returned" data-id="${t.id}">Ist wieder da</button><button class="small secondary" data-act="extend" data-id="${t.id}">+ 1 Woche</button>`
+        : `<button class="small secondary" data-act="contact" data-col="things" data-id="${t.id}">Kontakt</button>`}</div></div>`;
+  };
+  return `${out.length ? `<h2 class="section-title">Verliehen <span class="sub">nur für dich sichtbar</span></h2><div class="card lent-card">${out.map((t) => row(t, true)).join('')}</div>` : ''}
+    ${borrowed.length ? `<h2 class="section-title">Bei dir ausgeliehen <span class="sub">nur für dich sichtbar</span></h2><div class="card lent-card">${borrowed.map((t) => row(t, false)).join('')}</div>` : ''}`;
 }
 
 // „Was haben wir alles im Haus?“ – die ersten Einträge je Rubrik, ein Klick führt zur Rubrik
@@ -1111,10 +1135,17 @@ const actions = {
     const it = findItem('things', d.id);
     const def = new Date(); def.setDate(def.getDate() + 7);
     openSheet(`${sheetHead('Verliehen')}<form data-form="lend" data-id="${d.id}"><p class="text">${esc(it.title)}</p>
-      <label for="l-to">An wen? <span class="opt">(freiwillig, sehen nur du und die Verwaltung)</span></label><input id="l-to" name="lentTo" type="text" maxlength="80" list="userlist">
+      <label for="l-to">An wen? <span class="opt">(freiwillig, sehen nur du, diese Person und die Verwaltung)</span></label><input id="l-to" name="lentTo" type="text" maxlength="80" list="userlist">
+      <p class="hint">Wählst du einen Namen aus dem Haus, sieht die Person es auf ihrer Startseite unter „Bei dir ausgeliehen“.</p>
       <datalist id="userlist">${S.st.users.filter((u) => u.id !== me().id).map((u) => `<option value="${esc(u.name)}">`).join('')}</datalist>
       <label for="l-d">Zurück bis</label><input id="l-d" name="returnDate" type="date" value="${isoDay(def)}">
       <div class="sheet-actions"><button type="button" class="secondary" data-act="close">Abbrechen</button><button>Speichern</button></div></form>`);
+  },
+  extend: async (d) => {
+    const it = findItem('things', d.id); if (!it) return;
+    const base = it.returnDate && it.returnDate > isoDay() ? parseDay(it.returnDate) : new Date();
+    base.setDate(base.getDate() + 7);
+    try { await call('PUT', `/items/things/${d.id}`, { returnDate: isoDay(base) }); toast(`Verlängert bis ${fmtDay(isoDay(base))}`); await reload(); } catch (e) { handleErr(e); }
   },
   returned: async (d) => { try { await call('PUT', `/items/things/${d.id}`, { status: 'frei', lentTo: '', returnDate: '' }); toast('Schön, dass es zurück ist!'); await reload(); } catch (e) { handleErr(e); } },
   reserve: async (d) => { const it = findItem('gifts', d.id); try { await call('PUT', `/items/gifts/${d.id}`, { status: it.status === 'reserviert' ? '' : 'reserviert' }); await reload(); } catch (e) { handleErr(e); } },

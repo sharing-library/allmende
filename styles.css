@@ -79,7 +79,7 @@ body.no-nav #app { padding-bottom: calc(var(--safe-b) + 40px); }
 .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #fff; margin: 4px 0 18px; }
 .brand { display: block; line-height: 0; color: #fff; text-decoration: none; }
 .logo { display: block; overflow: visible; }
-.logo .l1 { font-family: Georgia, "Times New Roman", serif; font-weight: 700; font-size: 27px; fill: #fff; }
+.logo .l1 { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-weight: 300; font-size: 29px; fill: #fff; }
 .logo .l2 { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-weight: 600; font-size: 11.5px; fill: var(--light); }
 .top { align-items: flex-start; }
 .top-help { display: flex; gap: 6px; }
@@ -294,3 +294,12 @@ code { background: var(--paper-2); padding: 1px 5px; border-radius: 5px; font-si
 .cal-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .cal-sub { color: #fff; font-size: 1rem; margin: 16px 0 8px; }
 .cal-none { color: #dcd8f7; margin: 0 0 8px; }
+
+/* Verliehen / ausgeliehen */
+.lent-card { padding: 4px 18px; }
+.lent-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.lent-row:last-child { border-bottom: 0; }
+.lent-row .lent-txt { flex: 1 1 200px; min-width: 0; }
+.lent-row .meta { margin-top: 2px; }
+.lent-row .actions { margin-top: 0; }
+.lent-row.late .lent-txt > b { color: var(--rose); }
